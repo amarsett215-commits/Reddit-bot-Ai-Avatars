@@ -29,10 +29,11 @@ class HookGenerator:
         if self.use_ai:
             self.client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
 
-    def generate_hooks(self, niche):
-        """Generate viral hooks for a niche. Returns list of hook dicts."""
+    def generate_hooks(self, niche, strategy_text=None):
+        """Generate viral hooks for a niche. Returns list of hook dicts.
+        If strategy_text is provided, uses the avatar persona from it."""
         if self.use_ai:
-            return self._generate_ai_hooks(niche)
+            return self._generate_ai_hooks(niche, strategy_text=strategy_text)
         return self._generate_template_hooks(niche)
 
     def generate_content_strategy(self, niche):
@@ -45,13 +46,44 @@ class HookGenerator:
     # AI-powered generation (Claude API)
     # ------------------------------------------------------------------
 
-    def _generate_ai_hooks(self, niche):
+    def _generate_ai_hooks(self, niche, strategy_text=None):
         """Use Claude to generate psychology-driven viral hooks."""
         top_post_titles = [
             p.get("post_title", "") for p in niche.top_posts[:10]
         ]
         themes = niche.themes.get("top_keywords", [])
         theme_words = [t["word"] for t in themes[:10]]
+
+        # Extract avatar persona from strategy if available
+        persona_context = ""
+        if strategy_text:
+            # Pull the avatar section from the strategy
+            lines = strategy_text.split("\n")
+            in_persona = False
+            persona_lines = []
+            for line in lines:
+                if "AVATAR PERSONA" in line.upper() or "AVATAR" in line.upper() and "PERSONA" in line.upper():
+                    in_persona = True
+                    continue
+                if in_persona:
+                    if line.startswith("## ") or line.startswith("# ") or "CONTENT PILLAR" in line.upper():
+                        break
+                    persona_lines.append(line)
+            if persona_lines:
+                persona_context = f"""
+AVATAR PERSONA (speak as this character):
+{''.join(persona_lines[:20]).strip()}
+"""
+
+        # Default persona context if none extracted
+        if not persona_context:
+            archetype = self._get_avatar_archetype(niche.category)
+            persona_context = f"""
+AVATAR PERSONA (speak as this character):
+You are an AI avatar playing the role of a {archetype}.
+You are the EXPERT/COACH/GUIDE — NOT the person suffering.
+You speak from experience helping hundreds of people, with calm authority.
+"""
 
         prompt = f"""You are an elite direct-response copywriter and viral content strategist
 who specializes in short-form video hooks for Instagram Reels. You understand human psychology
@@ -63,28 +95,40 @@ CATEGORY: {niche.category}
 KEY THEMES: {', '.join(theme_words)}
 PAIN SCORES: Desperation={niche.nlp_scores.get('desperation_score', 0):.0f}/100,
 Emotional Intensity={niche.nlp_scores.get('emotional_intensity', 0):.0f}/100
-
-REAL POSTS FROM THIS AUDIENCE (use their language):
+{persona_context}
+REAL POSTS FROM THIS AUDIENCE (use their language as INSPIRATION for the pain points):
 {chr(10).join(f'- {t}' for t in top_post_titles if t)}
 
 Generate exactly {config.HOOKS_PER_NICHE} viral hooks for an AI avatar Instagram page targeting
 this niche. Each hook is the FIRST 3 SECONDS of a reel — it must stop the scroll instantly.
 
+CRITICAL POV RULES:
+- The avatar is an EXPERT/COACH/THERAPIST speaking TO the audience, NOT someone going through the problem
+- NEVER write hooks in first-person sufferer voice ("I tracked my brain fog", "She used my identity")
+- ALWAYS write hooks from the EXPERT POV: "Your brain fog isn't random — after coaching 200+ people..."
+- The avatar HELPS people with these problems. They reference patterns they've SEEN in clients, not personal suffering
+- Think: therapist on camera giving advice, NOT a Reddit poster sharing their story
+- Acceptable first-person: "I've helped 500 people through this" or "In my experience coaching..."
+- The avatar may reference seeing patterns: "Every client I work with makes this same mistake..."
+- Use the real Reddit posts as PROOF OF DEMAND — reference the pain points but from an expert lens
+  (e.g., real post: "woke up to a corpse" → hook: "If you've ever woken up and barely recognized yourself, here's what your body is telling you...")
+
 For each hook, provide:
 1. The hook text (what the AI avatar says in the first 3 seconds)
 2. The psychology principle it uses
 3. A brief content outline for the full 30-60 second reel
-4. A suggested caption with CTA driving to a digital product
+4. A suggested caption with CTA driving to a digital product (keep captions authentic, minimal emojis — max 1-2)
 
 RULES:
-- Use the EXACT emotional language from the real posts above
+- Understand the emotional language from the real posts but TRANSLATE it into expert advice
 - Every hook must create an open loop the viewer NEEDS to close
 - Use pattern interrupts — start with something unexpected
 - Leverage loss aversion > gain framing (what they'll LOSE, not gain)
-- Make it feel like insider knowledge being leaked
-- The avatar should feel like a mentor/authority figure, NOT a salesperson
+- Make it feel like insider knowledge being leaked by an authority
+- The avatar IS the mentor/authority figure — they speak WITH authority, not as a peer in pain
 - Hooks should be conversational, not corporate
 - Each hook should use a DIFFERENT psychology principle
+- Captions should feel real and human, not like a 2019 Instagram marketer (no emoji spam, no ALL CAPS hype)
 
 Format each hook as:
 HOOK [number]:
@@ -276,10 +320,10 @@ Be specific, actionable, and psychologically sophisticated. No fluff."""
         for j, title in enumerate(real_titles[:3]):
             hooks.append({
                 "number": len(hooks) + 1,
-                "text": f"I saw someone say '{title[:70]}' — and they're wrong. Here's why.",
-                "psychology": "Contrarian + curiosity gap + pattern interrupt",
-                "reel_outline": f"Reference the real post, explain the common misconception, give the real answer about {topic}.",
-                "caption": f"The internet has {topic} all wrong. Let me fix that. | Follow for more",
+                "text": f"Someone posted '{title[:70]}' — and here's what they're actually dealing with.",
+                "psychology": "Contrarian + curiosity gap + expert authority",
+                "reel_outline": f"Reference the real post as a case study, break down the real issue from an expert lens, give the actual solution for {topic}.",
+                "caption": f"I see this pattern every day. Here's what's really going on. | Follow for more {niche} insights",
             })
 
         return hooks[:config.HOOKS_PER_NICHE]
@@ -414,96 +458,96 @@ Low-ticket offer → Upsell to mid-ticket on thank you page
         return archetypes.get(category, "authoritative mentor figure")
 
     def _get_hook_templates(self):
-        """Proven hook templates based on psychology."""
+        """Proven hook templates based on psychology — all from EXPERT/COACH POV."""
         return [
             {
-                "template": "Nobody talks about the dark side of {topic}. Let me tell you what I learned the hard way.",
-                "psychology": "Curiosity gap + pattern interrupt",
-                "outline": "Reveal a hidden truth about {topic} that contradicts common advice. End with actionable takeaway.",
-                "caption": "The truth about {topic} that nobody wants to hear. Save this. | Follow for more {niche} insights",
+                "template": "Nobody in your life is going to tell you the truth about {topic}. So let me.",
+                "psychology": "Curiosity gap + authority positioning",
+                "outline": "Reveal a hidden truth about {topic} from an expert lens. Reference patterns seen across hundreds of clients. End with actionable takeaway.",
+                "caption": "The truth about {topic} that nobody around you will say out loud. Save this. | Follow for more {niche} insights",
             },
             {
-                "template": "If you're struggling with {topic}, stop doing what everyone else is doing. Here's why.",
-                "psychology": "Contrarian positioning + identity",
-                "outline": "Challenge the mainstream approach to {topic}. Present a counterintuitive alternative. Show social proof.",
+                "template": "If you're struggling with {topic}, stop doing what everyone tells you. Here's what I tell my clients instead.",
+                "psychology": "Contrarian positioning + expert authority",
+                "outline": "Challenge the mainstream approach to {topic}. Present the counterintuitive method that actually works. Back with client results.",
                 "caption": "Stop following the crowd on {topic}. There's a better way. | Link in bio for the full guide",
             },
             {
-                "template": "I wish someone told me this about {topic} 10 years ago. It would have saved me everything.",
-                "psychology": "Loss aversion + authority",
-                "outline": "Share a pivotal lesson about {niche}. Frame as a costly mistake. Deliver the insight. CTA to product.",
-                "caption": "This one lesson changed everything for me. Don't make the same mistake. | Free guide in bio",
+                "template": "Every person I've coached on {topic} makes this same mistake in the first week.",
+                "psychology": "Loss aversion + authority + pattern recognition",
+                "outline": "Share the #1 mistake you see across all clients. Frame as avoidable. Deliver the fix. CTA to free guide.",
+                "caption": "This one mistake is costing you more than you think. Don't make it. | Free guide in bio",
             },
             {
                 "template": "The real reason you can't fix your {topic} problem has nothing to do with {topic}.",
                 "psychology": "Curiosity gap + reframing",
-                "outline": "Reframe the {topic} problem as a deeper issue. Provide the real root cause. Give one actionable step.",
+                "outline": "Reframe the {topic} problem as a deeper root cause issue. Provide expert diagnosis. Give one actionable step.",
                 "caption": "It's not about {topic}. It never was. | Follow for daily {niche} wisdom",
             },
             {
-                "template": "Rich people don't talk about this. But it's the #1 thing that changed my {topic}.",
-                "psychology": "Scarcity + social proof + curiosity",
-                "outline": "Reveal a strategy used by successful people. Make it feel exclusive. Provide a simplified version anyone can use.",
-                "caption": "The elite don't want you to know this about {topic}. But you deserve to. | Save this",
+                "template": "After helping 300+ people with {topic}, here's the pattern nobody talks about.",
+                "psychology": "Social proof + curiosity + authority",
+                "outline": "Reveal a hidden pattern only visible after coaching many people. Make it feel like insider knowledge. Give a simplified framework.",
+                "caption": "This pattern changes everything once you see it. | Save this",
             },
             {
-                "template": "You're not lazy. You're not broken. You just don't understand how {topic} actually works.",
-                "psychology": "Identity validation + reframing",
-                "outline": "Validate the audience's struggle. Explain the real mechanism behind {topic}. Give them a new mental model.",
-                "caption": "It was never your fault. Here's what's really going on with {topic}. | Share with someone who needs this",
+                "template": "You're not lazy. You're not broken. Your approach to {topic} is just wrong. Let me show you.",
+                "psychology": "Identity validation + reframing + authority",
+                "outline": "Validate the audience's struggle. Diagnose the real issue from expert perspective. Give them a new mental model.",
+                "caption": "It was never your fault. Here's what's actually going on. | Share with someone who needs this",
             },
             {
-                "template": "If you earn under $100K and you're ignoring {topic}, this is your wake-up call.",
-                "psychology": "Loss aversion + urgency + identity",
-                "outline": "Paint the cost of inaction on {topic}. Show what they're leaving on the table. Give the first step.",
-                "caption": "This is your sign to take {topic} seriously. Before it's too late. | Free playbook in bio",
+                "template": "If you earn under $100K and you're ignoring {topic}, let me show you what that's actually costing you.",
+                "psychology": "Loss aversion + urgency + expert quantification",
+                "outline": "Paint the cost of inaction using real numbers from client experience. Show what they're leaving on the table. Give the first step.",
+                "caption": "This is your sign to take {topic} seriously. Before it gets worse. | Free playbook in bio",
             },
             {
-                "template": "I spent 5 years making every mistake with {topic} so you don't have to. Here's the cheat code.",
-                "psychology": "Authority + reciprocity + curiosity",
-                "outline": "List 3 major mistakes you made with {niche}. For each, give the fix. End with the 'cheat code' framework.",
-                "caption": "5 years of mistakes condensed into 60 seconds. You're welcome. | Follow for more",
+                "template": "I've seen this destroy people's {topic} goals over and over. Here's how to avoid it.",
+                "psychology": "Fear + authority + reciprocity",
+                "outline": "Describe the pattern you see repeatedly as an expert. For each failure pattern, give the fix. End with a framework.",
+                "caption": "I keep seeing this play out. Don't let it happen to you. | Follow for more",
             },
             {
-                "template": "The {topic} advice that's all over the internet is actually making your problem worse.",
-                "psychology": "Pattern interrupt + enemy framing",
-                "outline": "Call out popular bad advice about {topic}. Explain why it backfires. Present the correct approach.",
-                "caption": "Stop Googling {topic} advice. Most of it is wrong. Here's what actually works. | Save this",
+                "template": "The {topic} advice all over the internet is making your problem worse. Here's what actually works.",
+                "psychology": "Pattern interrupt + enemy framing + authority",
+                "outline": "Call out popular bad advice from an expert perspective. Explain why it backfires. Present what works based on real results.",
+                "caption": "Stop Googling {topic} advice. Most of it is wrong. Here's what I tell my clients. | Save this",
             },
             {
-                "template": "In 2026, if you understand {topic}, you'll be in the top 1%. Most people still don't get it.",
-                "psychology": "Scarcity + social comparison + timeliness",
-                "outline": "Frame {topic} as an emerging opportunity. Show why most people miss it. Give the viewer the first step to being early.",
-                "caption": "The window is closing on {topic}. Are you going to act or watch? | Link in bio",
+                "template": "Your {topic} problem isn't what you think it is. I've seen this hundreds of times.",
+                "psychology": "Curiosity + authority + pattern recognition",
+                "outline": "Diagnose the real problem behind {topic} struggles. Share the common misdiagnosis vs reality. Give the viewer the correct first step.",
+                "caption": "Once you see the real problem, the solution becomes obvious. | Link in bio",
             },
             {
                 "template": "Your parents never taught you this about {topic}. And it's costing you thousands.",
-                "psychology": "Loss aversion + blame displacement",
-                "outline": "Reveal a generational blind spot about {niche}. Quantify the cost. Show the fix is simpler than they think.",
-                "caption": "What they never taught us about {topic} is holding us back. Time to fix that. | Follow for daily tips",
+                "psychology": "Loss aversion + blame displacement + authority",
+                "outline": "Reveal a generational blind spot about {niche} from expert perspective. Quantify the cost. Show the fix is simpler than they think.",
+                "caption": "What they never taught us about {topic} is holding an entire generation back. | Follow for daily tips",
             },
             {
-                "template": "I need to get this off my chest about {topic}. This might make some people angry.",
-                "psychology": "Pattern interrupt + vulnerability + controversy",
-                "outline": "Start vulnerable, then pivot to a bold truth about {topic}. Back it up with evidence. CTA to deeper content.",
-                "caption": "Uncomfortable truths about {topic} that need to be said. | Like if you agree",
+                "template": "I need to address something about {topic} that's going to make some people uncomfortable.",
+                "psychology": "Pattern interrupt + controversy + authority",
+                "outline": "Take a bold expert stance on {topic}. Back it up with evidence and client results. CTA to deeper content.",
+                "caption": "Uncomfortable truths about {topic} that need to be said by someone who sees the full picture. | Like if you agree",
             },
             {
-                "template": "Stop telling yourself you'll figure out {topic} later. Later is how people end up broke.",
-                "psychology": "Urgency + loss aversion + tough love",
-                "outline": "Paint the consequences of procrastination on {niche}. Use a specific example. Give one action they can take TODAY.",
+                "template": "Stop telling yourself you'll figure out {topic} later. I've seen what 'later' actually looks like.",
+                "psychology": "Urgency + loss aversion + expert witness",
+                "outline": "Paint the consequences of procrastination using real client stories. Give one action they can take TODAY.",
                 "caption": "'Later' is the most expensive word in {topic}. Start now. | Free starter guide in bio",
             },
             {
-                "template": "The 3-minute {topic} trick that the internet hasn't ruined yet.",
-                "psychology": "Curiosity + scarcity + simplicity",
-                "outline": "Deliver a genuinely useful quick tip for {topic}. Frame it as time-sensitive before it gets oversaturated.",
-                "caption": "This {topic} trick still works in 2026. Won't last forever though. | Save before it goes viral",
+                "template": "There's a 3-minute {topic} exercise I give all my clients. Most say it changed everything.",
+                "psychology": "Curiosity + simplicity + social proof",
+                "outline": "Deliver a genuinely useful quick technique for {topic}. Frame it as your go-to recommendation that gets consistent results.",
+                "caption": "This exercise works every time. Simple but powerful. | Save it, try it tonight",
             },
             {
-                "template": "If {topic} makes you anxious, you're actually closer to a breakthrough than you think.",
-                "psychology": "Reframing + hope + identity validation",
-                "outline": "Normalize the anxiety around {niche}. Reframe it as a sign of growth. Give the next step past the anxiety.",
-                "caption": "Your anxiety about {topic} is a signal, not a setback. | Follow for the mindset shift",
+                "template": "If {topic} keeps you up at night, that actually tells me something important about where you are.",
+                "psychology": "Reframing + empathy + expert diagnosis",
+                "outline": "Normalize the anxiety around {niche}. Diagnose what the anxiety signals about their stage. Give the next step past it.",
+                "caption": "Your anxiety about {topic} is data, not a death sentence. Let me decode it. | Follow for the mindset shift",
             },
         ]

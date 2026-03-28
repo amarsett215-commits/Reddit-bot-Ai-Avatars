@@ -229,15 +229,17 @@ def generate(args):
         niche = _reconstruct_niche(niche_data)
 
         print(f"\n  Generating for: {niche.name}")
-        print("    Hooks...", end=" ", flush=True)
-        hooks = hook_generator.generate_hooks(niche)
-        hooks_by_niche[niche.name] = hooks
-        print(f"{len(hooks)} hooks")
 
+        # Generate strategy FIRST so hooks can use the avatar persona
         print("    Strategy...", end=" ", flush=True)
         strategy = hook_generator.generate_content_strategy(niche)
         strategies_by_niche[niche.name] = strategy
         print("done")
+
+        print("    Hooks (from avatar POV)...", end=" ", flush=True)
+        hooks = hook_generator.generate_hooks(niche, strategy_text=strategy)
+        hooks_by_niche[niche.name] = hooks
+        print(f"{len(hooks)} hooks")
 
     # Generate report with hooks
     # Reconstruct all niches (to keep the full scorecard) but only with hooks for picked ones
