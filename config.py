@@ -12,10 +12,10 @@ REDDIT_USER_AGENT = os.getenv("REDDIT_USER_AGENT", "NicheScout/1.0")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
 # Scraping settings
-REDDIT_POST_LIMIT = 500          # Posts to scan per subreddit
+REDDIT_POST_LIMIT = 100          # Posts to scan per subreddit (keeps requests low)
 MIN_UPVOTES = 50                 # Minimum upvotes to consider a post relevant
 MIN_COMMENTS = 20                # Minimum comments to consider
-COMMENT_DEPTH = 50               # Top comments to analyze per post
+COMMENT_DEPTH = 20               # Top comments to analyze per post
 QUORA_PAGES_PER_TOPIC = 3        # Pages to scrape per Quora topic
 
 # Analysis settings

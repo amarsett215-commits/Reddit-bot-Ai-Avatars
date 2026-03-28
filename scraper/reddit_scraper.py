@@ -37,15 +37,22 @@ class RedditScraper:
     Every Reddit page is available as JSON by appending .json to the URL.
     """
 
-    BASE_URL = "https://www.reddit.com"
+    BASE_URL = "https://old.reddit.com"
     HEADERS = {
-        "User-Agent": config.REDDIT_USER_AGENT,
-        "Accept": "application/json",
+        "User-Agent": (
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/120.0.0.0 Safari/537.36"
+        ),
+        "Accept": "application/json, text/html",
+        "Accept-Language": "en-US,en;q=0.9",
     }
 
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update(self.HEADERS)
+        self._request_count = 0
+        self._window_start = time.time()
 
     def _pick_subreddits(self, num_categories=4, subs_per_category=4):
         """Randomly select subreddits from the pool for this run."""
@@ -61,37 +68,52 @@ class RedditScraper:
         random.shuffle(selected)
         return selected
 
+    def _throttle(self):
+        """Rate limiter: max 10 requests per 60 seconds."""
+        self._request_count += 1
+        if self._request_count % 10 == 0:
+            elapsed = time.time() - self._window_start
+            if elapsed < 60:
+                sleep_time = 60 - elapsed + 2
+                print(f"    (pausing {sleep_time:.0f}s to avoid rate limits...)")
+                time.sleep(sleep_time)
+            self._window_start = time.time()
+        else:
+            # Small pause between every request
+            time.sleep(2)
+
     def _fetch_json(self, url, retries=3):
         """Fetch a Reddit JSON endpoint with retry logic."""
+        self._throttle()
+
         for attempt in range(retries):
             try:
-                resp = self.session.get(url, timeout=15)
+                resp = self.session.get(url, timeout=20)
 
                 if resp.status_code == 429:
-                    wait = 2 ** (attempt + 2)
+                    wait = 30 + (attempt * 15)
                     print(f"    Rate limited, waiting {wait}s...")
                     time.sleep(wait)
+                    self._window_start = time.time()
+                    self._request_count = 0
                     continue
 
                 if resp.status_code == 403:
-                    print("    Forbidden (private/quarantined)")
                     return None
 
                 if resp.status_code == 404:
-                    print("    Not found")
                     return None
 
                 if resp.status_code >= 500:
-                    time.sleep(2)
+                    time.sleep(5)
                     continue
 
                 if resp.status_code == 200:
                     return resp.json()
 
             except requests.exceptions.Timeout:
-                time.sleep(2)
+                time.sleep(3)
             except requests.exceptions.JSONDecodeError:
-                print("    Invalid JSON response")
                 return None
             except Exception as e:
                 print(f"    Error: {e}")
@@ -108,41 +130,18 @@ class RedditScraper:
         return None
 
     def _get_posts(self, sub_name, sort="hot", time_filter="month", limit=100):
-        """Fetch posts from a subreddit."""
+        """Fetch posts from a subreddit (single page, no pagination to save requests)."""
+        fetch_limit = min(limit, 100)
         if sort == "top":
-            url = f"{self.BASE_URL}/r/{sub_name}/top.json?t={time_filter}&limit={limit}"
+            url = f"{self.BASE_URL}/r/{sub_name}/top.json?t={time_filter}&limit={fetch_limit}"
         else:
-            url = f"{self.BASE_URL}/r/{sub_name}/{sort}.json?limit={limit}"
+            url = f"{self.BASE_URL}/r/{sub_name}/{sort}.json?limit={fetch_limit}"
 
-        all_posts = []
-        after = None
-        pages_fetched = 0
-        max_pages = limit // 100 + 1
+        data = self._fetch_json(url)
+        if not data or "data" not in data:
+            return []
 
-        while pages_fetched < max_pages:
-            page_url = url
-            if after:
-                separator = "&" if "?" in url else "?"
-                page_url = f"{url}{separator}after={after}"
-
-            data = self._fetch_json(page_url)
-            if not data or "data" not in data:
-                break
-
-            children = data["data"].get("children", [])
-            if not children:
-                break
-
-            all_posts.extend(children)
-            after = data["data"].get("after")
-            pages_fetched += 1
-
-            if not after:
-                break
-
-            time.sleep(1)  # Respect rate limits between pages
-
-        return all_posts
+        return data["data"].get("children", [])
 
     def _get_post_comments(self, permalink, limit=None):
         """Fetch top comments for a specific post."""
@@ -198,11 +197,11 @@ class RedditScraper:
 
                 permalink = post_data.get("permalink", "")
 
-                # Fetch top comments for high-engagement posts
+                # Only fetch comments for top 3 posts per subreddit
+                # to avoid hammering Reddit with too many requests
                 top_comments = []
-                if score >= config.MIN_UPVOTES * 2:
+                if score >= 500 and len([p for p in posts_found if p.top_comments]) < 3:
                     top_comments = self._get_post_comments(permalink)
-                    time.sleep(0.5)  # Be nice to Reddit
 
                 selftext = post_data.get("selftext", "") or ""
 
@@ -262,6 +261,6 @@ class RedditScraper:
                 print("skipped")
 
             # Delay between subreddits to avoid rate limiting
-            time.sleep(1.5)
+            time.sleep(3)
 
         return dict(results)
