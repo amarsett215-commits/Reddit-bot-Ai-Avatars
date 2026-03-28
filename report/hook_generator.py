@@ -102,11 +102,19 @@ KEY THEMES: {', '.join(theme_words)}
 PAIN SCORES: Desperation={niche.nlp_scores.get('desperation_score', 0):.0f}/100,
 Emotional Intensity={niche.nlp_scores.get('emotional_intensity', 0):.0f}/100
 {persona_context}
-REAL POSTS FROM THIS AUDIENCE (use their language as INSPIRATION for the pain points):
+AUDIENCE RESEARCH — these are real posts showing what this audience struggles with.
+Use them to understand the EMOTIONAL LANDSCAPE, not as content topics:
 {chr(10).join(f'- {t}' for t in top_post_titles if t)}
+
+IMPORTANT: The posts above are RESEARCH DATA, not script topics. Extract the universal
+emotions and pain points (fear, guilt, confusion, feeling trapped, being taken advantage of)
+and write hooks about BROAD problems that millions of people in this niche relate to.
+Do NOT write hooks about hyper-specific situations (one person's restaurant bill, one person's
+sister stealing their ID). Instead, target the UNIVERSAL version of the pain.
 
 Generate exactly {config.HOOKS_PER_NICHE} viral hooks for an AI avatar Instagram page targeting
 this niche. Each hook is the FIRST 3 SECONDS of a reel — it must stop the scroll instantly.
+Every hook should feel like it's speaking to MILLIONS of people, not retelling one person's story.
 
 CRITICAL POV RULES:
 - The avatar is an EXPERT/COACH/THERAPIST speaking TO the audience, NOT someone going through the problem
@@ -123,7 +131,7 @@ For each hook, provide:
 1. The hook text (what the AI avatar says in the first 3 seconds)
 2. The psychology principle it uses
 3. A brief content outline for the full 30-60 second reel
-4. A suggested caption with CTA driving to a digital product (keep captions authentic, minimal emojis — max 1-2)
+4. A suggested caption with CTA — MUST use "Comment [KEYWORD] for..." format. NEVER say "link in bio". The entire strategy is driving comments because the algorithm rewards them. Keep captions authentic, 1-2 sentences, minimal emojis (max 1-2).
 
 RULES:
 - Understand the emotional language from the real posts but TRANSLATE it into expert advice
@@ -135,6 +143,9 @@ RULES:
 - Hooks should be conversational, not corporate
 - Each hook should use a DIFFERENT psychology principle
 - Captions should feel real and human, not like a 2019 Instagram marketer (no emoji spam, no ALL CAPS hype)
+- NEVER use "link in bio" — ALWAYS use "Comment [KEYWORD]" CTA in captions
+- Target BROAD, UNIVERSAL pain points — every reel should be a lottery ticket that millions relate to
+- Do NOT recreate specific Reddit posts as content. Use them as emotional research only.
 
 Format each hook as:
 HOOK [number]:
@@ -208,13 +219,30 @@ KEY THEMES: {', '.join(theme_words)}
 AVATAR PERSONA:
 {persona_context}
 
-REAL PAIN POINTS FROM THE AUDIENCE:
+AUDIENCE RESEARCH (real posts — use for emotional insight, NOT as script topics):
 {chr(10).join(f'- {t}' for t in top_post_titles if t)}
 
-{"HOOKS TO EXPAND INTO FULL SCRIPTS:" + chr(10) + hook_refs if hook_refs else ""}
+{"HOOKS FOR INSPIRATION (adapt freely, don't copy directly):" + chr(10) + hook_refs if hook_refs else ""}
+
+=== CRITICAL: BROAD vs NARROW ===
+Every script MUST target a UNIVERSAL pain point that MILLIONS of people relate to.
+Do NOT write scripts about hyper-specific Reddit situations (one person's restaurant bill,
+one person's sister stealing their ID, one person's apartment lease dispute).
+
+Instead, extract the UNIVERSAL EMOTION behind the data and write about THAT:
+- Specific post about sister stealing identity → Universal: "people in your life who keep
+  crossing boundaries and how to stop it permanently"
+- Specific post about $4500 restaurant scam → Universal: "why most people lose money in
+  disputes and the one mindset shift that gets it back"
+- Specific post about parents demanding retirement funding → Universal: "toxic family members
+  who use guilt to control your finances"
+
+Each reel is a LOTTERY TICKET. It needs to hit the broadest possible audience within this niche.
+A reel about "what to do when a restaurant overcharges you" gets 10K views.
+A reel about "the one sentence that stops anyone from financially manipulating you" gets 1M views.
 
 Generate exactly {config.SCRIPTS_PER_NICHE} complete 60-second reel scripts. Each script must
-follow this EXACT structure:
+target a DIFFERENT broad emotional territory within this niche and follow this EXACT structure:
 
 === SCRIPT STRUCTURE ===
 
@@ -292,7 +320,7 @@ Psychology: [main psychology principle used]
 [CTA - 0:55-0:60]
 (the exact words)
 
-Caption: (the Instagram caption — authentic, 1-2 sentences max, no emoji spam)
+Caption: (the Instagram caption — authentic, 1-2 sentences max, no emoji spam, MUST include "Comment [KEYWORD]" CTA, NEVER "link in bio")
 
 ==="""
 
