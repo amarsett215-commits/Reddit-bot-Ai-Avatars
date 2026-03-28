@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Niche Scout Report</title>
+    <style>
+        :root {
+            --bg: #0f0f0f;
+            --card: #1a1a2e;
+            --accent: #6c5ce7;
+            --accent2: #a855f7;
+            --green: #00d26a;
+            --yellow: #ffd93d;
+            --red: #ff6b6b;
+            --text: #e0e0e0;
+            --muted: #888;
+            --border: #2d2d44;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle { color: var(--muted); margin-bottom: 2rem; font-size: 0.95rem; }
+        .summary-bar {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .summary-stat {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.2rem 1.5rem;
+            flex: 1;
+            min-width: 200px;
+        }
+        .summary-stat .label { color: var(--muted); font-size: 0.85rem; }
+        .summary-stat .value { font-size: 1.8rem; font-weight: 700; color: var(--accent2); }
+        .niche-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: border-color 0.3s;
+        }
+        .niche-card:hover { border-color: var(--accent); }
+        .niche-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .niche-rank {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--accent);
+            opacity: 0.3;
+            line-height: 1;
+        }
+        .niche-title { font-size: 1.5rem; font-weight: 700; }
+        .niche-category {
+            color: var(--accent2);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .score-badge {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 800;
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 120px;
+        }
+        .score-badge .label { font-size: 0.7rem; font-weight: 400; opacity: 0.8; }
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+        }
+        .score-label { font-size: 0.9rem; color: var(--muted); }
+        .score-bar-container {
+            width: 120px;
+            height: 8px;
+            background: #2d2d44;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 0.8rem;
+            flex-shrink: 0;
+        }
+        .score-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .score-value { font-weight: 600; min-width: 35px; text-align: right; }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.8rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+        .stat-item {
+            background: rgba(108, 92, 231, 0.08);
+            padding: 0.8rem;
+            border-radius: 8px;
+        }
+        .stat-item .label { font-size: 0.75rem; color: var(--muted); }
+        .stat-item .value { font-size: 1.1rem; font-weight: 600; }
+        .tag {
+            display: inline-block;
+            background: rgba(168, 85, 247, 0.15);
+            color: var(--accent2);
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin: 0.2rem;
+        }
+        .post-link {
+            display: block;
+            padding: 0.5rem 0;
+            color: var(--text);
+            text-decoration: none;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .post-link:hover { color: var(--accent2); }
+        .post-link .engagement {
+            color: var(--green);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .hook-card {
+            background: rgba(108, 92, 231, 0.06);
+            border-left: 3px solid var(--accent);
+            padding: 1rem 1.2rem;
+            margin-bottom: 1rem;
+            border-radius: 0 8px 8px 0;
+        }
+        .hook-text {
+            font-size: 1.05rem;
+            font-weight: 600;
+            font-style: italic;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+        .hook-meta { font-size: 0.8rem; color: var(--muted); }
+        .hook-meta strong { color: var(--accent2); }
+        .strategy-block {
+            background: rgba(0, 210, 106, 0.05);
+            border: 1px solid rgba(0, 210, 106, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+        .collapsible { cursor: pointer; user-select: none; }
+        .collapsible::after { content: " [+]"; color: var(--accent); font-size: 0.8rem; }
+        .collapsible.open::after { content: " [-]"; }
+        .collapsible-content { display: none; }
+        .collapsible-content.open { display: block; }
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            h1 { font-size: 1.8rem; }
+            .niche-header { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Niche Scout Report</h1>
+        <p class="subtitle">Generated: {{ generated_at }} | AI-Powered Niche Analysis</p>
+
+        <div class="summary-bar">
+            <div class="summary-stat">
+                <div class="label">Niches Analyzed</div>
+                <div class="value">{{ report.niches | length }}</div>
+            </div>
+            {% if report.niches %}
+            <div class="summary-stat">
+                <div class="label">#1 Niche</div>
+                <div class="value" style="font-size:1.2rem">{{ report.niches[0].name }}</div>
+            </div>
+            <div class="summary-stat">
+                <div class="label">Top Score</div>
+                <div class="value">{{ report.niches[0].super_niche_score }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% for niche in report.niches %}
+        <div class="niche-card">
+            <div class="niche-header">
+                <div>
+                    <span class="niche-rank">#{{ niche.rank }}</span>
+                    <div class="niche-title">{{ niche.name }}</div>
+                    <div class="niche-category">{{ niche.category | replace('_', ' ') }}</div>
+                </div>
+                <div class="score-badge">
+                    {{ niche.super_niche_score }}
+                    <div class="label">SUPER NICHE SCORE</div>
+                </div>
+            </div>
+
+            <!-- Score Breakdown -->
+            <div class="section-title">Score Breakdown</div>
+            <div class="scores-grid">
+                {% set score_items = [
+                    ('Pain Point', niche.scores.pain_point_intensity),
+                    ('Willingness to Pay', niche.scores.willingness_to_pay),
+                    ('Viral Potential', niche.scores.viral_potential),
+                    ('Demand Volume', niche.scores.demand_volume),
+                    ('Content Potential', niche.scores.content_potential),
+                    ('Monetization Ready', niche.scores.monetization_readiness),
+                    ('Low Competition', niche.scores.low_competition),
+                    ('Scalability', niche.scores.scalability)
+                ] %}
+                {% for label, value in score_items %}
+                <div class="score-item">
+                    <span class="score-label">{{ label }}</span>
+                    <div class="score-bar-container">
+                        <div class="score-bar-fill" style="width: {{ value }}%;
+                            background: {% if value >= 70 %}var(--green){% elif value >= 40 %}var(--yellow){% else %}var(--red){% endif %};"></div>
+                    </div>
+                    <span class="score-value">{{ value }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            <p style="color:var(--muted);font-size:0.85rem;">
+                Psychology Multiplier: <strong style="color:var(--accent2)">{{ niche.scores.psychology_multiplier }}x</strong>
+            </p>
+
+            <!-- Demand Stats -->
+            <div class="section-title">Demand Signals</div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="label">Posts Analyzed</div>
+                    <div class="value">{{ niche.stats.total_posts_analyzed }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="label">Total Engagement</div>
+                    <div class="value">{{ "{:,}".format(niche.stats.total_engagement) }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="label">Subscriber Reach</div>
+                    <div class="value">{{ "{:,}".format(niche.stats.subscriber_reach) }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="label">Cross-Subreddit</div>
+                    <div class="value">{{ niche.stats.cross_subreddit_count }} subs</div>
+                </div>
+                <div class="stat-item">
+                    <div class="label">Content Velocity</div>
+                    <div class="value">{{ niche.stats.content_velocity }} posts/day</div>
+                </div>
+                <div class="stat-item">
+                    <div class="label">Quora Questions</div>
+                    <div class="value">{{ niche.stats.quora_questions_found }}</div>
+                </div>
+            </div>
+
+            <!-- Themes -->
+            {% if niche.themes.top_keywords %}
+            <div class="section-title">Key Themes</div>
+            <div>
+                {% for kw in niche.themes.top_keywords[:10] %}
+                <span class="tag">{{ kw.word }} ({{ kw.count }})</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Subreddits -->
+            <div class="section-title">Subreddits</div>
+            <div>
+                {% for sub in niche.stats.subreddits_found %}
+                <span class="tag">r/{{ sub }}</span>
+                {% endfor %}
+            </div>
+
+            <!-- Top Posts -->
+            {% if niche.top_posts %}
+            <div class="section-title collapsible" onclick="toggleSection(this)">Top Posts (Proof of Demand)</div>
+            <div class="collapsible-content">
+                {% for post in niche.top_posts[:8] %}
+                <a href="{{ post.url }}" target="_blank" class="post-link">
+                    {{ post.title[:100] }}
+                    <span class="engagement">{{ "{:,}".format(post.engagement) }} engagement &middot; r/{{ post.subreddit }}</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Quora Questions -->
+            {% if niche.quora_questions %}
+            <div class="section-title collapsible" onclick="toggleSection(this)">Quora Questions</div>
+            <div class="collapsible-content">
+                {% for q in niche.quora_questions[:5] %}
+                <p style="padding:0.3rem 0;font-size:0.9rem;color:var(--muted);">{{ q }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Viral Hooks -->
+            {% if niche.hooks %}
+            <div class="section-title collapsible" onclick="toggleSection(this)">Viral Hooks ({{ niche.hooks | length }})</div>
+            <div class="collapsible-content">
+                {% for hook in niche.hooks %}
+                <div class="hook-card">
+                    <div class="hook-text">"{{ hook.text }}"</div>
+                    <div class="hook-meta">
+                        <strong>Psychology:</strong> {{ hook.psychology }}<br>
+                        {% if hook.reel_outline %}<strong>Reel:</strong> {{ hook.reel_outline }}<br>{% endif %}
+                        {% if hook.caption %}<strong>Caption:</strong> {{ hook.caption }}{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Content Strategy -->
+            {% if niche.content_strategy %}
+            <div class="section-title collapsible" onclick="toggleSection(this)">Full Content & Monetization Strategy</div>
+            <div class="collapsible-content">
+                <div class="strategy-block">{{ niche.content_strategy }}</div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function toggleSection(el) {
+            el.classList.toggle('open');
+            const content = el.nextElementSibling;
+            if (content) content.classList.toggle('open');
+        }
+    </script>
+</body>
+</html>
