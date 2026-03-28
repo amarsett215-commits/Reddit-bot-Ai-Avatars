@@ -224,6 +224,7 @@ def generate(args):
 
     hooks_by_niche = {}
     strategies_by_niche = {}
+    scripts_by_niche = {}
 
     for niche_data in selected:
         niche = _reconstruct_niche(niche_data)
@@ -241,12 +242,20 @@ def generate(args):
         hooks_by_niche[niche.name] = hooks
         print(f"{len(hooks)} hooks")
 
+        print("    Full scripts...", end=" ", flush=True)
+        scripts = hook_generator.generate_scripts(niche, strategy_text=strategy, hooks=hooks)
+        scripts_by_niche[niche.name] = scripts
+        print(f"{len(scripts)} scripts")
+
     # Generate report with hooks
     # Reconstruct all niches (to keep the full scorecard) but only with hooks for picked ones
     all_niches_reconstructed = [_reconstruct_niche(nd) for nd in niches]
 
     report_gen = ReportGenerator()
-    paths = report_gen.generate(all_niches_reconstructed, hooks_by_niche, strategies_by_niche)
+    paths = report_gen.generate(
+        all_niches_reconstructed, hooks_by_niche, strategies_by_niche,
+        scripts_by_niche=scripts_by_niche,
+    )
 
     print(f"\n{'=' * 60}")
     print(f"  GENERATION COMPLETE")

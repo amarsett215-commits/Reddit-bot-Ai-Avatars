@@ -23,12 +23,14 @@ class ReportGenerator:
         os.makedirs(output_dir, exist_ok=True)
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-    def generate(self, scored_niches, hooks_by_niche, strategies_by_niche):
+    def generate(self, scored_niches, hooks_by_niche, strategies_by_niche,
+                 scripts_by_niche=None):
         """Generate all three report formats. Returns dict of file paths."""
         top_niches = scored_niches[:config.TOP_NICHES_TO_REPORT]
 
         report_data = self._build_report_data(
-            top_niches, hooks_by_niche, strategies_by_niche
+            top_niches, hooks_by_niche, strategies_by_niche,
+            scripts_by_niche=scripts_by_niche or {},
         )
 
         paths = {}
@@ -38,8 +40,10 @@ class ReportGenerator:
 
         return paths
 
-    def _build_report_data(self, niches, hooks_by_niche, strategies_by_niche):
+    def _build_report_data(self, niches, hooks_by_niche, strategies_by_niche,
+                           scripts_by_niche=None):
         """Structure all data for output."""
+        scripts_by_niche = scripts_by_niche or {}
         report = {
             "generated_at": datetime.now().isoformat(),
             "total_niches_analyzed": len(niches),
@@ -75,6 +79,7 @@ class ReportGenerator:
                 ],
                 "quora_questions": niche.quora_questions[:10],
                 "hooks": hooks_by_niche.get(niche.name, []),
+                "scripts": scripts_by_niche.get(niche.name, []),
                 "content_strategy": strategies_by_niche.get(niche.name, ""),
             }
             report["niches"].append(niche_data)
@@ -187,6 +192,35 @@ class ReportGenerator:
                         lines.append(f"Reel outline: {hook['reel_outline']}\n")
                     if hook.get("caption"):
                         lines.append(f"Caption: *{hook['caption']}*\n")
+                    lines.append("---\n")
+
+            # Full Scripts
+            scripts = niche.get("scripts", [])
+            if scripts:
+                lines.append("### Full 60-Second Reel Scripts\n")
+                for script in scripts:
+                    lines.append(f"#### Script #{script.get('number', '')}: {script.get('title', '')}")
+                    lines.append(f"**Keyword CTA:** {script.get('keyword', '')}")
+                    lines.append(f"**Psychology:** {script.get('psychology', '')}\n")
+
+                    lines.append("**[HOOK — 0:00-0:03]**")
+                    lines.append(f"> {script.get('hook', '')}\n")
+
+                    lines.append("**[TENSION — 0:03-0:15]**")
+                    lines.append(f"> {script.get('tension', '')}\n")
+
+                    lines.append("**[VALUE — 0:15-0:45]**")
+                    lines.append(f"> {script.get('value', '')}\n")
+
+                    lines.append("**[PAYOFF — 0:45-0:55]**")
+                    lines.append(f"> {script.get('payoff', '')}\n")
+
+                    lines.append("**[CTA — 0:55-0:60]**")
+                    lines.append(f"> {script.get('cta', '')}\n")
+
+                    if script.get("caption"):
+                        lines.append(f"**Caption:** {script['caption']}\n")
+
                     lines.append("---\n")
 
             # Strategy

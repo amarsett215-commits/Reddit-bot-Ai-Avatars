@@ -36,6 +36,12 @@ class HookGenerator:
             return self._generate_ai_hooks(niche, strategy_text=strategy_text)
         return self._generate_template_hooks(niche)
 
+    def generate_scripts(self, niche, strategy_text=None, hooks=None):
+        """Generate full 60-second reel scripts. Returns list of script dicts."""
+        if self.use_ai:
+            return self._generate_ai_scripts(niche, strategy_text, hooks)
+        return self._generate_template_scripts(niche, hooks)
+
     def generate_content_strategy(self, niche):
         """Generate a full content strategy for the niche."""
         if self.use_ai:
@@ -150,6 +156,234 @@ Caption: ...
         except Exception as e:
             print(f"    AI hook generation failed ({e}), using templates...")
             return self._generate_template_hooks(niche)
+
+    def _generate_ai_scripts(self, niche, strategy_text=None, hooks=None):
+        """Use Claude to generate full 60-second reel scripts."""
+        # Extract avatar persona from strategy
+        persona_context = ""
+        if strategy_text:
+            lines = strategy_text.split("\n")
+            in_persona = False
+            persona_lines = []
+            for line in lines:
+                upper = line.upper()
+                if "AVATAR PERSONA" in upper or ("AVATAR" in upper and "PERSONA" in upper):
+                    in_persona = True
+                    continue
+                if in_persona:
+                    if line.startswith("## ") or line.startswith("# ") or "CONTENT PILLAR" in upper:
+                        break
+                    persona_lines.append(line)
+            if persona_lines:
+                persona_context = "\n".join(persona_lines[:20]).strip()
+
+        if not persona_context:
+            archetype = self._get_avatar_archetype(niche.category)
+            persona_context = f"A {archetype} who has helped hundreds of people in this space."
+
+        # Pick the best hooks to expand into scripts
+        hook_refs = ""
+        if hooks:
+            best_hooks = hooks[:config.SCRIPTS_PER_NICHE]
+            for h in best_hooks:
+                hook_refs += f"- \"{h.get('text', '')}\"\n"
+
+        top_post_titles = [
+            p.get("post_title", "") for p in niche.top_posts[:10]
+        ]
+        themes = niche.themes.get("top_keywords", [])
+        theme_words = [t["word"] for t in themes[:10]]
+
+        prompt = f"""You are the world's best short-form video scriptwriter. You write scripts
+for AI avatar Instagram Reels that get 95%+ watch-through rates. You understand pacing,
+tension, open loops, and spoken-word rhythm at a master level.
+
+You are writing scripts for an AI avatar — a digital character who appears on camera
+delivering these scripts. The avatar is an EXPERT/COACH/AUTHORITY in their field.
+
+NICHE: {niche.name}
+CATEGORY: {niche.category}
+KEY THEMES: {', '.join(theme_words)}
+
+AVATAR PERSONA:
+{persona_context}
+
+REAL PAIN POINTS FROM THE AUDIENCE:
+{chr(10).join(f'- {t}' for t in top_post_titles if t)}
+
+{"HOOKS TO EXPAND INTO FULL SCRIPTS:" + chr(10) + hook_refs if hook_refs else ""}
+
+Generate exactly {config.SCRIPTS_PER_NICHE} complete 60-second reel scripts. Each script must
+follow this EXACT structure:
+
+=== SCRIPT STRUCTURE ===
+
+**HOOK (0-3 seconds):** The scroll-stopper. One sentence that creates an open loop so powerful
+they CANNOT keep scrolling. This is life or death — if this line doesn't hit, nothing else matters.
+
+**TENSION (3-15 seconds):** Deepen the problem. Make them FEEL it in their gut. Use specific
+details, paint a picture they recognize from their own life. This is where you agitate the wound.
+They should be thinking "this person is reading my mind."
+
+**VALUE (15-45 seconds):** This is the meat. Deliver a genuine insight, framework, or revelation
+that makes them think "holy shit, that makes so much sense." This should be something they've
+never heard framed this way before. NOT generic advice. NOT "just do X." It should feel like
+the expert just cracked open their skull and showed them how the machine works.
+
+**PAYOFF (45-55 seconds):** The "aha moment." Tie everything together with one clean,
+quotable line they'll want to screenshot or repeat to a friend. This is the moment
+the reel becomes shareable.
+
+**CTA (55-60 seconds):** Simple. Not salesy. Just: "Comment [KEYWORD] and I'll send you
+the full [specific resource]." The keyword should be a single word that relates to the
+script topic (e.g., "BOUNDARY", "RESET", "CLARITY"). Never say "link in bio" — always
+drive comments because that's what the algorithm rewards.
+
+=== WRITING RULES ===
+
+1. SPOKEN WORD ONLY — write how people TALK, not how they write. Short sentences. Fragments.
+   Pauses indicated by "..." or line breaks. No one speaks in perfect paragraphs.
+
+2. EXPERT POV ALWAYS — the avatar is the coach/therapist/expert speaking TO the viewer.
+   Never first-person sufferer. Use: "I see this with every client...", "After working with
+   hundreds of people...", "Here's what nobody in your life will tell you..."
+
+3. SPECIFICITY OVER GENERALITY — use exact numbers, timeframes, and details.
+   Bad: "A lot of people struggle with this."
+   Good: "I've worked with 347 people on this exact problem. 90% make the same mistake."
+
+4. EVERY LINE MUST EARN THE NEXT LINE — if any single line doesn't make the viewer
+   NEED to hear the next one, the script fails. There should be zero filler. Zero fluff.
+   Every sentence either deepens tension, delivers value, or creates a new open loop.
+
+5. PATTERN INTERRUPTS — break expectations. Start with something unexpected. Contradict
+   common wisdom. Use "The real reason..." and "What nobody tells you..." framing.
+
+6. NO SALESY LANGUAGE — never say "my course", "buy my", "check out my product."
+   The CTA is just "comment [WORD] for the full guide." That's it. Let the value sell.
+
+7. EMOTIONAL PACING — the script should feel like a rollercoaster:
+   Hook = shock/curiosity → Tension = anxiety/recognition → Value = relief/understanding →
+   Payoff = empowerment/clarity → CTA = simple action
+
+8. WRITE FOR THE EAR — read each script out loud. If it sounds like a blog post, rewrite it.
+   Use conversational connectors: "Look.", "Here's the thing.", "And this is the part that
+   gets me.", "Stay with me on this."
+
+Format each script as:
+
+SCRIPT [number]:
+Title: [short title for this script]
+Keyword: [CTA keyword]
+Psychology: [main psychology principle used]
+
+[HOOK - 0:00-0:03]
+(the exact words the avatar says)
+
+[TENSION - 0:03-0:15]
+(the exact words)
+
+[VALUE - 0:15-0:45]
+(the exact words — this is the longest section)
+
+[PAYOFF - 0:45-0:55]
+(the exact words)
+
+[CTA - 0:55-0:60]
+(the exact words)
+
+Caption: (the Instagram caption — authentic, 1-2 sentences max, no emoji spam)
+
+==="""
+
+        try:
+            response = self.client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=8000,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            raw_text = response.content[0].text
+            return self._parse_ai_scripts(raw_text)
+        except Exception as e:
+            print(f"    AI script generation failed ({e}), using templates...")
+            return self._generate_template_scripts(niche, hooks)
+
+    def _parse_ai_scripts(self, raw_text):
+        """Parse Claude's script output into structured dicts."""
+        scripts = []
+        current = {}
+        current_section = None
+        section_map = {
+            "[HOOK": "hook",
+            "[TENSION": "tension",
+            "[VALUE": "value",
+            "[PAYOFF": "payoff",
+            "[CTA": "cta",
+        }
+
+        for line in raw_text.split("\n"):
+            stripped = line.strip()
+
+            if stripped.startswith("SCRIPT") and ":" in stripped:
+                if current and current.get("hook"):
+                    scripts.append(current)
+                current = {"number": len(scripts) + 1}
+                current_section = None
+            elif stripped.startswith("Title:"):
+                current["title"] = stripped[6:].strip()
+            elif stripped.startswith("Keyword:"):
+                current["keyword"] = stripped[8:].strip()
+            elif stripped.startswith("Psychology:"):
+                current["psychology"] = stripped[11:].strip()
+            elif stripped.startswith("Caption:"):
+                current["caption"] = stripped[8:].strip()
+                current_section = "caption"
+            else:
+                # Check for section markers
+                found_section = False
+                for marker, section_name in section_map.items():
+                    if stripped.startswith(marker):
+                        current_section = section_name
+                        found_section = True
+                        break
+                if not found_section and current_section and stripped and not stripped.startswith("==="):
+                    existing = current.get(current_section, "")
+                    current[current_section] = (existing + "\n" + stripped).strip()
+
+        if current and current.get("hook"):
+            scripts.append(current)
+
+        return scripts
+
+    def _generate_template_scripts(self, niche, hooks=None):
+        """Fallback template scripts when AI is unavailable."""
+        topic = niche.name.split(":")[-1].strip() if ":" in niche.name else niche.name
+        scripts = []
+
+        hook_texts = []
+        if hooks:
+            hook_texts = [h.get("text", "") for h in hooks[:config.SCRIPTS_PER_NICHE]]
+        if not hook_texts:
+            hook_texts = [f"Nobody is telling you the truth about {topic.lower()}. So let me."]
+
+        for i, hook_text in enumerate(hook_texts):
+            scripts.append({
+                "number": i + 1,
+                "title": f"{topic} Script #{i + 1}",
+                "keyword": topic.upper().split()[0] if topic else "GUIDE",
+                "psychology": "Authority + curiosity gap",
+                "hook": hook_text,
+                "tension": f"I see this every single day in my practice. People come to me struggling with {topic.lower()}, "
+                           f"and they're all making the same mistake. The advice they're following? It's actually making things worse.",
+                "value": f"Here's what actually works — and I know because I've walked hundreds of people through this exact situation. "
+                         f"The key isn't what everyone thinks. It's not about willpower or motivation. "
+                         f"It's about understanding the system that's working against you and flipping it.",
+                "payoff": f"Once you see this, you can't unsee it. And that's when everything changes.",
+                "cta": f"Comment {topic.upper().split()[0]} and I'll send you the complete breakdown.",
+                "caption": f"The truth about {topic.lower()} that changes everything. Save this.",
+            })
+
+        return scripts
 
     def _generate_ai_strategy(self, niche):
         """Use Claude to generate a full content + monetization strategy."""

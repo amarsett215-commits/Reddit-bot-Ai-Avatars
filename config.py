@@ -30,6 +30,7 @@ MIN_DEMAND_THRESHOLD = 1000      # Minimum total engagement to consider a niche
 CROSS_SUB_BONUS = 15             # Bonus points for appearing in 3+ subreddits
 TOP_NICHES_TO_REPORT = 7         # Max niches in report (always shows best)
 HOOKS_PER_NICHE = 15             # Viral hooks to generate per niche
+SCRIPTS_PER_NICHE = 5            # Full 60-second scripts to generate per niche
 
 # Scoring weights (must sum to 1.0)
 SCORING_WEIGHTS = {
