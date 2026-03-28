@@ -299,17 +299,20 @@ Caption: (the Instagram caption — authentic, 1-2 sentences max, no emoji spam)
         try:
             response = self.client.messages.create(
                 model="claude-sonnet-4-20250514",
-                max_tokens=8000,
+                max_tokens=12000,
                 messages=[{"role": "user", "content": prompt}],
             )
             raw_text = response.content[0].text
+            stop_reason = response.stop_reason
+            if stop_reason == "max_tokens":
+                print(f"\n    WARNING: Script response was truncated (hit token limit).")
             parsed = self._parse_ai_scripts(raw_text)
             if not parsed:
-                print(f"\n    WARNING: Script parser returned 0 scripts. Using templates...")
+                print(f"\n    WARNING: Script parser returned 0 scripts, raw length={len(raw_text)}. Using templates...")
                 return self._generate_template_scripts(niche, hooks)
             return parsed
         except Exception as e:
-            print(f"    AI script generation failed ({e}), using templates...")
+            print(f"\n    AI script generation failed ({e}), using templates...")
             return self._generate_template_scripts(niche, hooks)
 
     def _parse_ai_scripts(self, raw_text):
