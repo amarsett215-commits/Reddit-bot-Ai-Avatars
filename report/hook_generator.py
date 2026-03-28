@@ -303,7 +303,11 @@ Caption: (the Instagram caption — authentic, 1-2 sentences max, no emoji spam)
                 messages=[{"role": "user", "content": prompt}],
             )
             raw_text = response.content[0].text
-            return self._parse_ai_scripts(raw_text)
+            parsed = self._parse_ai_scripts(raw_text)
+            if not parsed:
+                print(f"\n    WARNING: Script parser returned 0 scripts. Using templates...")
+                return self._generate_template_scripts(niche, hooks)
+            return parsed
         except Exception as e:
             print(f"    AI script generation failed ({e}), using templates...")
             return self._generate_template_scripts(niche, hooks)
@@ -313,40 +317,45 @@ Caption: (the Instagram caption — authentic, 1-2 sentences max, no emoji spam)
         scripts = []
         current = {}
         current_section = None
-        section_map = {
-            "[HOOK": "hook",
-            "[TENSION": "tension",
-            "[VALUE": "value",
-            "[PAYOFF": "payoff",
-            "[CTA": "cta",
+
+        # Section keywords to detect — flexible matching against cleaned line
+        section_keywords = {
+            "hook": ["[hook", "hook -", "hook —", "hook:"],
+            "tension": ["[tension", "tension -", "tension —", "tension:"],
+            "value": ["[value", "value -", "value —", "value:"],
+            "payoff": ["[payoff", "payoff -", "payoff —", "payoff:"],
+            "cta": ["[cta", "cta -", "cta —", "cta:"],
         }
 
         for line in raw_text.split("\n"):
             stripped = line.strip()
+            # Strip markdown bold markers and leading punctuation for matching
+            cleaned = stripped.lstrip("*#>- ").rstrip("*").strip()
+            cleaned_lower = cleaned.lower()
 
-            if stripped.startswith("SCRIPT") and ":" in stripped:
+            if "SCRIPT" in stripped.upper() and any(c.isdigit() for c in stripped):
                 if current and current.get("hook"):
                     scripts.append(current)
                 current = {"number": len(scripts) + 1}
                 current_section = None
-            elif stripped.startswith("Title:"):
-                current["title"] = stripped[6:].strip()
-            elif stripped.startswith("Keyword:"):
-                current["keyword"] = stripped[8:].strip()
-            elif stripped.startswith("Psychology:"):
-                current["psychology"] = stripped[11:].strip()
-            elif stripped.startswith("Caption:"):
-                current["caption"] = stripped[8:].strip()
+            elif cleaned.startswith("Title:") or cleaned.startswith("**Title"):
+                current["title"] = cleaned.split(":", 1)[-1].strip().strip("*")
+            elif cleaned.startswith("Keyword:") or cleaned.startswith("**Keyword"):
+                current["keyword"] = cleaned.split(":", 1)[-1].strip().strip("*")
+            elif cleaned.startswith("Psychology:") or cleaned.startswith("**Psychology"):
+                current["psychology"] = cleaned.split(":", 1)[-1].strip().strip("*")
+            elif cleaned.startswith("Caption:") or cleaned.startswith("**Caption"):
+                current["caption"] = cleaned.split(":", 1)[-1].strip().strip("*")
                 current_section = "caption"
             else:
-                # Check for section markers
+                # Check for section markers using flexible matching
                 found_section = False
-                for marker, section_name in section_map.items():
-                    if stripped.startswith(marker):
+                for section_name, markers in section_keywords.items():
+                    if any(m in cleaned_lower for m in markers):
                         current_section = section_name
                         found_section = True
                         break
-                if not found_section and current_section and stripped and not stripped.startswith("==="):
+                if not found_section and current_section and stripped and not stripped.startswith("===") and stripped != "---":
                     existing = current.get(current_section, "")
                     current[current_section] = (existing + "\n" + stripped).strip()
 
