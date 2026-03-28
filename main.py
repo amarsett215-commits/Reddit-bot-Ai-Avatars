@@ -42,31 +42,7 @@ def print_banner():
 
 
 def validate_config():
-    """Check that required API keys are set."""
-    errors = []
-
-    if not config.REDDIT_CLIENT_ID or config.REDDIT_CLIENT_ID == "your_client_id":
-        errors.append(
-            "REDDIT_CLIENT_ID not set. "
-            "Create a Reddit app at https://www.reddit.com/prefs/apps "
-            "and add credentials to .env"
-        )
-    if not config.REDDIT_CLIENT_SECRET or config.REDDIT_CLIENT_SECRET == "your_client_secret":
-        errors.append(
-            "REDDIT_CLIENT_SECRET not set. "
-            "Add it to .env"
-        )
-
-    if errors:
-        print("\n  CONFIGURATION ERRORS:")
-        for e in errors:
-            print(f"    - {e}")
-        print()
-        print("  Copy .env.example to .env and fill in your credentials.")
-        print("  Reddit API is free: https://www.reddit.com/prefs/apps")
-        print()
-        return False
-
+    """Check configuration. Reddit no longer needs API keys (uses web scraping)."""
     if not config.ANTHROPIC_API_KEY or config.ANTHROPIC_API_KEY == "your_anthropic_key":
         print(
             "\n  NOTE: ANTHROPIC_API_KEY not set. "
