@@ -206,13 +206,43 @@ Be specific, actionable, and psychologically sophisticated. No fluff."""
     def _generate_template_hooks(self, niche):
         """Generate hooks using proven templates + niche data."""
         templates = self._get_hook_templates()
-        themes = niche.themes.get("top_keywords", [])
-        theme_words = [t["word"] for t in themes[:5]] if themes else ["this"]
 
-        top_titles = [
+        # Use the niche NAME as the topic (not random keywords)
+        # Clean it up: "Tech & Skills: Coding" -> "coding"
+        niche_name = niche.name
+        if ":" in niche_name:
+            topic = niche_name.split(":")[-1].strip().lower()
+        else:
+            topic = niche_name.lower()
+
+        # Get meaningful theme phrases for variety (filter junk words)
+        junk_words = {
+            "years", "days", "day", "time", "people", "life", "thing",
+            "things", "lot", "way", "guy", "girl", "feel", "post",
+            "week", "month", "year", "ago", "old", "new", "good",
+            "bad", "best", "worst", "big", "small", "long", "short",
+            "really", "actually", "literally", "basically", "getting",
+            "porn", "porno", "masturbation", "sex", "nsfw", "nude",
+            "kill", "suicide", "dead", "died", "death",
+            "started", "start", "help", "advice", "question", "update",
+            "rant", "story", "experience", "first", "last", "back",
+        }
+        themes = niche.themes.get("top_keywords", [])
+        good_keywords = [
+            t["word"] for t in themes
+            if t["word"] not in junk_words and len(t["word"]) > 3
+        ]
+
+        # Build topic variations using niche name + good keywords
+        topic_variations = [topic]
+        for kw in good_keywords[:4]:
+            topic_variations.append(kw)
+
+        # Get real post titles for inspiration hooks
+        real_titles = [
             p.get("post_title", "")
-            for p in niche.top_posts[:5]
-            if p.get("post_title")
+            for p in niche.top_posts[:10]
+            if p.get("post_title") and len(p.get("post_title", "")) > 20
         ]
 
         hooks = []
@@ -221,59 +251,167 @@ Be specific, actionable, and psychologically sophisticated. No fluff."""
         )
 
         for i, template in enumerate(used_templates):
-            topic = random.choice(theme_words) if theme_words else "this"
-            title_ref = top_titles[i % len(top_titles)] if top_titles else ""
+            # Rotate through topic variations but always use clean names
+            current_topic = topic_variations[i % len(topic_variations)]
+            title_ref = real_titles[i % len(real_titles)] if real_titles else ""
 
             hook = {
                 "number": i + 1,
                 "text": template["template"].format(
-                    topic=topic,
-                    niche=niche.name.split(":")[0].strip(),
-                    title=title_ref[:60],
+                    topic=current_topic,
+                    niche=topic,
+                    title=title_ref[:80],
                 ),
                 "psychology": template["psychology"],
                 "reel_outline": template["outline"].format(
-                    topic=topic, niche=niche.name
+                    topic=current_topic, niche=topic
                 ),
                 "caption": template["caption"].format(
-                    topic=topic, niche=niche.name
+                    topic=current_topic, niche=topic
                 ),
             }
             hooks.append(hook)
 
-        return hooks
+        # Add 3 "real post inspired" hooks based on actual high-performing titles
+        for j, title in enumerate(real_titles[:3]):
+            hooks.append({
+                "number": len(hooks) + 1,
+                "text": f"I saw someone say '{title[:70]}' — and they're wrong. Here's why.",
+                "psychology": "Contrarian + curiosity gap + pattern interrupt",
+                "reel_outline": f"Reference the real post, explain the common misconception, give the real answer about {topic}.",
+                "caption": f"The internet has {topic} all wrong. Let me fix that. | Follow for more",
+            })
+
+        return hooks[:config.HOOKS_PER_NICHE]
 
     def _generate_template_strategy(self, niche):
-        """Generate a basic strategy without AI."""
-        return f"""## Content Strategy for {niche.name}
+        """Generate a niche-specific strategy without AI."""
+        topic = niche.name.split(":")[-1].strip() if ":" in niche.name else niche.name
+
+        # Pull real pain points from top posts
+        pain_points = []
+        for p in niche.top_posts[:5]:
+            title = p.get("post_title", "")
+            if title:
+                pain_points.append(f"  - \"{title[:80]}\"")
+        pain_section = "\n".join(pain_points) if pain_points else "  - (Run with more subreddits for richer data)"
+
+        # Niche-specific product ideas
+        product_map = {
+            "money_and_career": {
+                "free": "The 5 Money Mistakes Keeping You Broke (PDF checklist)",
+                "low": "'The Wealth Blueprint' — step-by-step guide to building your first $10K ($17)",
+                "mid": "'Money Mastery System' — full video course + templates + community ($67)",
+            },
+            "relationships_and_dating": {
+                "free": "10 Texts That Make Them Chase You (PDF)",
+                "low": "'The Connection Code' — guide to building deep relationships ($19)",
+                "mid": "'Relationship Reset' — 30-day transformation program ($57)",
+            },
+            "health_and_fitness": {
+                "free": "7-Day Transformation Starter Kit (PDF + meal plan)",
+                "low": "'The Body Blueprint' — complete nutrition & workout guide ($17)",
+                "mid": "'Total Health System' — 90-day program with coaching ($67)",
+            },
+            "self_improvement": {
+                "free": "The Morning Routine That Changed My Life (PDF)",
+                "low": "'The Discipline Playbook' — 30-day habit system ($19)",
+                "mid": "'Life Mastery Program' — full course with accountability ($67)",
+            },
+            "tech_and_skills": {
+                "free": "The Beginner's Cheat Sheet (PDF quick-start guide)",
+                "low": "'From Zero to Pro' — complete learning roadmap ($17)",
+                "mid": "'Skill Accelerator' — hands-on course with projects ($67)",
+            },
+            "parenting_and_family": {
+                "free": "5 Parenting Hacks That Actually Work (PDF)",
+                "low": "'The Calm Parent Guide' — stress-free parenting system ($17)",
+                "mid": "'Family Transformation Program' — full course ($57)",
+            },
+            "housing_and_living": {
+                "free": "First-Time Buyer Checklist (PDF)",
+                "low": "'The Housing Playbook' — insider tips + negotiation scripts ($19)",
+                "mid": "'Real Estate Starter System' — full course ($67)",
+            },
+            "legal_and_life_crises": {
+                "free": "Know Your Rights Checklist (PDF)",
+                "low": "'Crisis Navigation Guide' — step-by-step action plan ($17)",
+                "mid": "'Life Reset System' — recovery roadmap + templates ($57)",
+            },
+        }
+        products = product_map.get(niche.category, product_map["self_improvement"])
+
+        # Quora questions for content ideas
+        quora_section = ""
+        if niche.quora_questions:
+            quora_items = "\n".join(f"  - {q}" for q in niche.quora_questions[:5])
+            quora_section = f"""
+### Content Ideas from Quora (Real Questions People Ask)
+{quora_items}
+Each of these is a reel. Answer the question in 30-60 seconds as your avatar."""
+
+        return f"""## Content Strategy for {topic}
+
+### Real Pain Points Found (from Reddit)
+{pain_section}
 
 ### Avatar Persona
-An authoritative, relatable figure in the {niche.name} space.
-Speaks directly, uses conversational language, and shares
-insider knowledge that feels exclusive.
+A {self._get_avatar_archetype(niche.category)} who has mastered {topic.lower()}.
+Speaks with calm authority. Uses "I used to struggle with this too" framing.
+Dresses well, high-end setting. Feels like a mentor, never a salesman.
 
 ### Content Pillars
-1. Pain point callouts — "If you're struggling with {niche.name.lower()}..."
-2. Myth-busting — "Everyone says X, but the truth is..."
-3. Quick wins — "Do this ONE thing today..."
-4. Story-based — "I used to [pain point], until I discovered..."
-5. Controversial takes — "Unpopular opinion about {niche.name.lower()}..."
+1. **Pain point callouts** — directly reference the Reddit posts above. "If you're lying awake at 2am worrying about {topic.lower()}..."
+2. **Myth-busting** — "Everyone says [common advice], but here's what actually works..."
+3. **Quick wins** — "Do this ONE thing today and you'll see results by Friday..."
+4. **Story hooks** — "3 years ago I was exactly where you are. Then I discovered..."
+5. **Controversial takes** — "This is going to make people mad, but {topic.lower()} advice is broken..."
 
-### Digital Product Ideas
-1. Free lead magnet: Checklist or cheat sheet
-2. Low-ticket ($17): Comprehensive guide / ebook
-3. Mid-ticket ($67): Video course or coaching template
+### Digital Product Ladder
+1. **FREE lead magnet:** {products['free']}
+2. **Low-ticket:** {products['low']}
+3. **Mid-ticket:** {products['mid']}
+
+### Funnel Flow
+Reel (hook → value → CTA) → Profile ("Link in bio for free guide") →
+Free PDF (captures email) → Email sequence (3 emails over 5 days) →
+Low-ticket offer → Upsell to mid-ticket on thank you page
 
 ### Posting Strategy
-- 2 reels per day for first 30 days
-- Post at 7am, 12pm, or 7pm (test all three)
-- 60% educational, 25% story-based, 15% controversial
+- 2 reels per day for first 30 days (volume is everything early on)
+- Best times: 7am, 12pm, 6pm (test and adjust)
+- Mix: 50% pain-point/myth-bust, 30% story hooks, 20% controversial
 
-### Week 1 Focus
-Days 1-3: Post 2 pain-point callout reels per day
-Days 4-5: Post myth-busting content
-Days 6-7: Post story-based transformation content
+### Week 1 Launch Plan
+- **Day 1-2:** 3 pain point reels each day (high volume, test what resonates)
+- **Day 3-4:** 2 myth-busting reels + 1 story hook per day
+- **Day 5:** Controversial take reel (designed to get comments/shares)
+- **Day 6-7:** Double down on whatever got the most views in days 1-5
+- **Goal:** 1,000 followers by end of week 1 if one reel pops
+{quora_section}
+
+### Month 1 Revenue Estimate
+- Followers: 1,000-5,000 (conservative)
+- Email list: 200-500 from free lead magnet
+- Low-ticket sales: 20-50 at $17 = $340-$850
+- Mid-ticket sales: 3-8 at $67 = $200-$536
+- **Estimated Month 1: $540-$1,386**
+- *Scales dramatically with follower growth — accounts with 50K+ followers report $5K-$20K/month*
 """
+
+    def _get_avatar_archetype(self, category):
+        """Return avatar archetype based on category."""
+        archetypes = {
+            "money_and_career": "wealthy, self-made business figure in a luxury office",
+            "relationships_and_dating": "wise, emotionally intelligent relationship coach",
+            "health_and_fitness": "fit, disciplined wellness expert in a clean modern space",
+            "self_improvement": "calm, centered mentor figure with quiet confidence",
+            "tech_and_skills": "sharp, successful tech professional in a sleek workspace",
+            "parenting_and_family": "warm, experienced parent who radiates wisdom",
+            "housing_and_living": "successful real estate investor in an upscale home",
+            "legal_and_life_crises": "authoritative, empathetic advisor in a professional office",
+        }
+        return archetypes.get(category, "authoritative mentor figure")
 
     def _get_hook_templates(self):
         """Proven hook templates based on psychology."""

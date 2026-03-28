@@ -73,10 +73,10 @@ def run(args):
     reddit_scraper = RedditScraper()
 
     if args.fast:
-        # Override to scan fewer subreddits
+        # Override to scan fewer subreddits (but still cover 3 categories)
         original_pick = reddit_scraper._pick_subreddits
-        reddit_scraper._pick_subreddits = lambda num_categories=2, subs_per_category=2: original_pick(
-            num_categories=2, subs_per_category=2
+        reddit_scraper._pick_subreddits = lambda num_categories=3, subs_per_category=3: original_pick(
+            num_categories=3, subs_per_category=3
         )
 
     reddit_data = reddit_scraper.scrape()

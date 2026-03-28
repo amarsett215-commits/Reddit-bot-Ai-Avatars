@@ -130,16 +130,40 @@ class DemandAnalyzer:
         return niche
 
     def _find_sub_niches(self, parent_niche, analyzed_posts):
-        """Split a large niche into sub-niches based on keyword clusters."""
+        """
+        Split a large niche into sub-niches based on keyword clusters.
+        Only split if there are genuinely distinct sub-topics with enough
+        posts each. Filters out generic words that don't make good niche names.
+        """
         themes = self.nlp.extract_themes(analyzed_posts, min_frequency=5)
         top_keywords = themes.get("top_keywords", [])
 
         if len(top_keywords) < 3:
             return [parent_niche]
 
+        # Filter out words that don't make meaningful niche names
+        junk_words = {
+            "years", "days", "day", "time", "people", "life", "thing",
+            "things", "lot", "way", "guy", "girl", "feel", "post",
+            "week", "month", "year", "ago", "old", "new", "good",
+            "bad", "best", "worst", "big", "small", "long", "short",
+            "really", "actually", "literally", "basically", "getting",
+            "started", "start", "help", "advice", "question", "update",
+            "rant", "story", "experience", "first", "last", "back",
+            "found", "need", "want", "looking", "trying", "anyone",
+            "does", "much", "many", "made", "making", "work", "working",
+        }
+        valid_keywords = [
+            kw for kw in top_keywords
+            if kw["word"] not in junk_words and len(kw["word"]) > 3
+        ]
+
+        if len(valid_keywords) < 2:
+            return [parent_niche]
+
         # Group posts by dominant keyword
         sub_groups = defaultdict(list)
-        keyword_list = [kw["word"] for kw in top_keywords[:6]]
+        keyword_list = [kw["word"] for kw in valid_keywords[:5]]
 
         for post in analyzed_posts:
             title = post.get("post_title", "").lower()
@@ -156,9 +180,10 @@ class DemandAnalyzer:
             else:
                 sub_groups["_general"].append(post)
 
+        # Only create sub-niches with 8+ posts (meaningful cluster)
         sub_niches = []
         for keyword, posts in sub_groups.items():
-            if keyword == "_general" or len(posts) < 5:
+            if keyword == "_general" or len(posts) < 8:
                 continue
 
             sub_niche = NicheCandidate(
@@ -194,11 +219,11 @@ class DemandAnalyzer:
 
             sub_niches.append(sub_niche)
 
-        # Always keep the parent niche too
+        # Always keep parent niche, add sub-niches alongside it
         if not sub_niches:
             return [parent_niche]
 
-        return sub_niches
+        return [parent_niche] + sub_niches
 
     def _calculate_velocity(self, niche):
         """Estimate posts per day for this niche."""
