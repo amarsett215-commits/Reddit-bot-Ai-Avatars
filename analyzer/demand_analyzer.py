@@ -186,8 +186,10 @@ class DemandAnalyzer:
             if keyword == "_general" or len(posts) < 8:
                 continue
 
+            # Build a meaningful sub-niche name
+            sub_name = self._make_sub_niche_name(keyword, parent_niche.name, posts)
             sub_niche = NicheCandidate(
-                name=f"{parent_niche.name}: {keyword.title()}",
+                name=sub_name,
                 category=parent_niche.category,
                 subreddits=parent_niche.subreddits,
                 subscriber_reach=parent_niche.subscriber_reach,
@@ -239,6 +241,31 @@ class DemandAnalyzer:
 
         # Rough estimate: posts found / 30 days (we scraped ~1 month of data)
         niche.content_velocity = niche.total_posts / 30.0
+
+    def _make_sub_niche_name(self, keyword, parent_name, posts):
+        """Create a meaningful sub-niche name from keyword + context."""
+        # Check if we can find a better two-word phrase in the posts
+        import re
+        from collections import Counter
+
+        phrase_counter = Counter()
+        for post in posts:
+            title = post.get("post_title", "").lower()
+            # Find two-word phrases containing the keyword
+            words = re.findall(r"[a-z]+", title)
+            for i in range(len(words) - 1):
+                if words[i] == keyword or words[i + 1] == keyword:
+                    phrase = f"{words[i]} {words[i + 1]}"
+                    if len(phrase) > 5:
+                        phrase_counter[phrase] += 1
+
+        # Use the most common phrase if it appears 3+ times
+        if phrase_counter:
+            best_phrase, count = phrase_counter.most_common(1)[0]
+            if count >= 3:
+                return f"{parent_name}: {best_phrase.title()}"
+
+        return f"{parent_name}: {keyword.title()}"
 
     def _category_to_name(self, category):
         """Convert category slug to human name."""

@@ -54,17 +54,30 @@ class RedditScraper:
         self._request_count = 0
         self._window_start = time.time()
 
-    def _pick_subreddits(self, num_categories=4, subs_per_category=4):
-        """Randomly select subreddits from the pool for this run."""
+    def _pick_subreddits(self, num_categories=4, subs_per_category=4, exclude=None):
+        """Randomly select subreddits from the pool, skipping already-scanned ones."""
+        if exclude is None:
+            exclude = set()
+
         categories = list(config.SUBREDDIT_POOLS.keys())
-        chosen_categories = random.sample(
-            categories, min(num_categories, len(categories))
-        )
+        random.shuffle(categories)
+
         selected = []
-        for cat in chosen_categories:
-            pool = config.SUBREDDIT_POOLS[cat]
+        categories_used = 0
+
+        for cat in categories:
+            if categories_used >= num_categories:
+                break
+
+            pool = [s for s in config.SUBREDDIT_POOLS[cat] if s.lower() not in exclude]
+            if not pool:
+                continue
+
             chosen = random.sample(pool, min(subs_per_category, len(pool)))
-            selected.extend([(sub, cat) for sub in chosen])
+            if chosen:
+                selected.extend([(sub, cat) for sub in chosen])
+                categories_used += 1
+
         random.shuffle(selected)
         return selected
 
@@ -235,9 +248,10 @@ class RedditScraper:
 
         return data
 
-    def scrape(self, progress_callback=None):
+    def scrape(self, progress_callback=None, exclude_subs=None):
         """Main scrape method. Returns dict of category -> list of SubredditData."""
-        subreddits = self._pick_subreddits()
+        exclude = {s.lower() for s in (exclude_subs or set())}
+        subreddits = self._pick_subreddits(exclude=exclude)
         results = defaultdict(list)
         total = len(subreddits)
 

@@ -3,25 +3,32 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Reddit API
+# Reddit API (optional — web scraping works without keys)
 REDDIT_CLIENT_ID = os.getenv("REDDIT_CLIENT_ID", "")
 REDDIT_CLIENT_SECRET = os.getenv("REDDIT_CLIENT_SECRET", "")
 REDDIT_USER_AGENT = os.getenv("REDDIT_USER_AGENT", "NicheScout/1.0")
 
-# Anthropic API
+# Anthropic API (used only in Phase 2 for hook generation)
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+
+# =====================================================================
+# HUNT SETTINGS — controls the niche discovery loop
+# =====================================================================
+MIN_NICHE_SCORE = 70             # Keep scanning until niches hit this score
+TARGET_NICHES = 3                # Stop when this many niches pass the threshold
+MAX_SCAN_ROUNDS = 5              # Maximum scan rounds before giving best results
+SUBS_PER_ROUND = 16              # Subreddits to scan per round (4 categories x 4 subs)
 
 # Scraping settings
 REDDIT_POST_LIMIT = 100          # Posts to scan per subreddit (keeps requests low)
 MIN_UPVOTES = 50                 # Minimum upvotes to consider a post relevant
 MIN_COMMENTS = 20                # Minimum comments to consider
 COMMENT_DEPTH = 20               # Top comments to analyze per post
-QUORA_PAGES_PER_TOPIC = 3        # Pages to scrape per Quora topic
 
 # Analysis settings
 MIN_DEMAND_THRESHOLD = 1000      # Minimum total engagement to consider a niche
 CROSS_SUB_BONUS = 15             # Bonus points for appearing in 3+ subreddits
-TOP_NICHES_TO_REPORT = 7         # Number of niches in final report
+TOP_NICHES_TO_REPORT = 7         # Max niches in report (always shows best)
 HOOKS_PER_NICHE = 15             # Viral hooks to generate per niche
 
 # Scoring weights (must sum to 1.0)
@@ -36,54 +43,133 @@ SCORING_WEIGHTS = {
     "scalability": 0.05,
 }
 
-# Subreddits to scan — randomized subset chosen each run
+# =====================================================================
+# SUBREDDIT POOLS — the bot picks randomly from these each round
+# Organized by CROSS-CUTTING THEMES, not just basic categories
+# The bot thinks outside the box by mixing problem-based + identity-based pools
+# =====================================================================
 SUBREDDIT_POOLS = {
+    # --- MONEY & WEALTH ---
     "money_and_career": [
         "personalfinance", "financialindependence", "povertyfinance",
         "careerguidance", "cscareerquestions", "antiwork", "overemployed",
         "sidehustle", "entrepreneurridealong", "smallbusiness",
         "freelance", "digitalnomad", "investing", "wallstreetbets",
         "realestateinvesting", "creditcards", "debt", "frugal",
+        "sales", "resumes", "jobs", "workreform",
     ],
+
+    # --- RELATIONSHIPS & DATING ---
     "relationships_and_dating": [
         "relationship_advice", "dating_advice", "datingoverthirty",
         "breakups", "divorce", "survivinginfidelity", "deadbedrooms",
         "attachment_theory", "socialskills", "loneliness",
-        "foreveralone", "seduction", "hingeapp", "tinder",
+        "foreveralone", "hingeapp", "tinder", "bumble",
+        "exnocontact", "marriage",
     ],
+
+    # --- PHYSICAL HEALTH & BODY ---
     "health_and_fitness": [
         "loseit", "fitness", "bodyweightfitness", "running",
         "nutrition", "supplements", "sleep", "insomnia",
-        "chronicpain", "ibs", "adhd", "anxiety", "depression",
-        "mentalhealth", "nootropics", "biohackers", "intermittentfasting",
+        "chronicpain", "ibs", "intermittentfasting",
         "keto", "plantbaseddiet", "skincare", "hairloss",
+        "PCOS", "backpain", "posture", "weightroom",
+        "progresspics", "1200isplenty",
     ],
+
+    # --- MENTAL HEALTH & INNER DEMONS ---
+    "mental_health": [
+        "anxiety", "depression", "mentalhealth", "adhd",
+        "ptsd", "cptsd", "bipolar", "OCD",
+        "socialanxiety", "dpdr", "BPD",
+        "adhdwomen", "anxietyhelp",
+    ],
+
+    # --- SELF IMPROVEMENT & DISCIPLINE ---
     "self_improvement": [
         "selfimprovement", "getdisciplined", "decidingtobebetter",
         "productivity", "getmotivated", "stoicism", "meditation",
         "journaling", "theXeffect", "nofap", "leaves",
-        "stopdrinking", "stopsmoking",
+        "stopdrinking", "stopsmoking", "nosurf", "pornfree",
     ],
+
+    # --- PARENTING & FAMILY ---
     "parenting_and_family": [
         "parenting", "daddit", "mommit", "newparents",
         "beyondthebump", "toddlers", "homeschool",
-        "stepparents", "custody",
+        "stepparents", "custody", "workingmoms",
+        "sahp", "breakingmom",
     ],
+
+    # --- TECH, SKILLS & CAREER PIVOTS ---
     "tech_and_skills": [
         "learnprogramming", "webdev", "datascience",
-        "artificial", "machinelearning", "photography",
+        "machinelearning", "photography",
         "videography", "graphic_design", "writing",
-        "languagelearning", "excel",
+        "languagelearning", "excel", "ITcareerquestions",
+        "copywriting", "UXDesign",
     ],
+
+    # --- HOUSING & FINANCIAL SURVIVAL ---
     "housing_and_living": [
         "firsttimehomebuyer", "realestate", "landlord",
-        "homeimprovement", "frugal", "minimalism",
+        "homeimprovement", "minimalism",
         "vanlife", "expats", "almosthomeless",
+        "povertyfinance", "EatCheapAndHealthy",
     ],
+
+    # --- LEGAL & LIFE CRISES ---
     "legal_and_life_crises": [
         "legaladvice", "insurance", "scams",
         "raisedbynarcissists", "justnomil", "abusiverelationships",
-        "domesticviolence", "ptsd",
+        "NarcissisticAbuse", "LifeAfterNarcissism",
+    ],
+
+    # --- CREATIVE CROSS-CUTTING: IDENTITY CRISES ---
+    # People questioning who they are, stuck between lives
+    "identity_and_purpose": [
+        "findapath", "quarterlifecrisis", "midlifecrisis",
+        "careerguidance", "decidingtobebetter",
+        "ExperiencedDevs", "30PlusSkinCare",
+        "AskMenOver30", "AskWomenOver30",
+        "Adulting", "internetparents",
+    ],
+
+    # --- CREATIVE CROSS-CUTTING: MONEY ANXIETY ---
+    # People stressed about money regardless of income level
+    "money_stress": [
+        "povertyfinance", "debt", "personalfinance",
+        "studentloans", "ynab", "leanfire",
+        "overemployed", "antiwork", "teacherreality",
+        "nursing", "pharmacy",
+    ],
+
+    # --- CREATIVE CROSS-CUTTING: BODY IMAGE & CONFIDENCE ---
+    "body_confidence": [
+        "loseit", "progresspics", "fitness",
+        "skincare", "hairloss", "PlasticSurgery",
+        "amiugly", "selfimprovement",
+        "malefashionadvice", "femalefashionadvice",
+    ],
+
+    # --- CREATIVE CROSS-CUTTING: STARTING OVER ---
+    # People rebuilding from scratch (divorce, job loss, addiction)
+    "starting_over": [
+        "divorce", "stopdrinking", "leaves",
+        "ExNoContact", "LifeAfterNarcissism",
+        "careerguidance", "almosthomeless",
+        "povertyfinance", "decidingtobebetter",
+        "NewDads", "singlemoms",
+    ],
+
+    # --- CREATIVE CROSS-CUTTING: YOUNG ADULTS STRUGGLING ---
+    "young_adults": [
+        "GenZ", "college", "findapath",
+        "cscareerquestions", "learnprogramming",
+        "personalfinance", "Adulting",
+        "socialskills", "dating_advice",
+        "internetparents", "needadvice",
     ],
 }
 
