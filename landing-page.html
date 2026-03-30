@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Crisis Toolkit — Your Recovery Roadmap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat&family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--primary:#2D6A4F;--secondary:#F4A261;--accent:#E76F51;
+--bg:#FFFDF7;--bg-alt:#F0F7F4;--text:#1B1B1B;--text-sec:#4A5568;
+--highlight:#FFF3E0;--radius:14px;--shadow:0 8px 32px rgba(0,0,0,0.08);
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;color:var(--text);background:var(--bg);font-size:1.1rem;line-height:1.7;overflow-x:hidden}
+h1,h2,h3{font-family:'Playfair Display',serif;font-weight:700;line-height:1.2}
+.caveat{font-family:'Caveat',cursive}
+img{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+.btn{display:inline-block;background:var(--primary);color:#fff;padding:18px 40px;border-radius:50px;font-size:1.15rem;font-weight:700;font-family:'DM Sans',sans-serif;border:none;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.btn:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(45,106,79,.25)}
+.btn-white{background:#fff;color:var(--primary)}
+.btn-white:hover{box-shadow:0 12px 40px rgba(0,0,0,.12)}
+.placeholder{background:linear-gradient(135deg,#F0F7F4,#E8F5E9);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;color:var(--text-sec);font-size:.95rem;font-weight:500;text-align:center;padding:20px}
+.fade-in{opacity:0;transform:translateY(30px);transition:opacity .6s ease-out,transform .6s ease-out}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+
+/* ===== HERO ===== */
+.hero{background:linear-gradient(180deg,#F0F7F4 0%,var(--bg) 100%);padding:80px 0 60px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(244,162,97,.12) 0%,transparent 70%);border-radius:50%}
+.hero::after{content:'';position:absolute;bottom:-80px;left:-80px;width:300px;height:300px;background:radial-gradient(circle,rgba(45,106,79,.08) 0%,transparent 70%);border-radius:50%}
+.social-proof{display:inline-flex;align-items:center;gap:8px;background:#fff;padding:8px 20px;border-radius:50px;box-shadow:var(--shadow);margin-bottom:32px;font-size:.9rem;color:var(--text-sec);position:relative;z-index:1}
+.avatar-dots{display:flex;gap:-4px}
+.avatar-dot{width:28px;height:28px;border-radius:50%;border:2px solid #fff;margin-left:-8px}
+.avatar-dot:first-child{margin-left:0}
+.hero h1{font-size:3.8rem;color:var(--text);margin-bottom:16px;position:relative;z-index:1}
+.hero .subheadline{font-size:1.25rem;color:var(--text-sec);max-width:600px;margin:0 auto 40px;position:relative;z-index:1}
+.hero-mockup{width:280px;height:400px;margin:0 auto 36px;transform:rotate(-2deg);box-shadow:0 20px 60px rgba(0,0,0,.12);position:relative;z-index:1}
+.price-display{margin:20px 0 28px;position:relative;z-index:1}
+.price-current{font-size:2.8rem;font-weight:700;color:var(--primary)}
+.price-original{font-size:1.6rem;color:var(--accent);text-decoration:line-through;font-family:'Caveat',cursive;margin-left:12px;position:relative}
+.savings-badge{display:inline-block;background:var(--highlight);color:var(--accent);padding:6px 16px;border-radius:50px;font-size:.85rem;font-weight:700;margin-top:8px}
+.scroll-arrow{margin:40px auto 0;width:40px;height:40px;display:flex;align-items:center;justify-content:center;animation:bounce 2s infinite;color:var(--text-sec);font-size:1.5rem}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(10px)}}
+
+/* ===== EMPATHY ===== */
+.empathy{padding:100px 0}
+.empathy-block{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-bottom:80px}
+.empathy-block:last-child{margin-bottom:0}
+.empathy-block.reverse{direction:rtl}
+.empathy-block.reverse>*{direction:ltr}
+.empathy-img{width:100%;height:320px}
+.empathy-text h2{font-size:2.5rem;margin-bottom:20px}
+.empathy-text p{color:var(--text-sec);font-size:1.1rem}
+
+/* ===== WHAT'S INSIDE ===== */
+.whats-inside{padding:100px 0;background:var(--bg)}
+.whats-inside h2{font-size:2.8rem;margin-bottom:16px}
+.whats-inside .desc{color:var(--text-sec);max-width:800px;margin-bottom:60px;font-size:1.1rem}
+.phase-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+.phase-card{text-align:center}
+.phase-img{width:100%;height:200px;margin-bottom:20px}
+.phase-card .phase-label{font-family:'Caveat',cursive;color:var(--secondary);font-size:1.1rem;margin-bottom:4px}
+.phase-card h3{font-size:1.35rem;margin-bottom:10px}
+.phase-card p{color:var(--text-sec);font-size:.95rem}
+
+/* ===== FEATURES ===== */
+.features{padding:100px 0;background:var(--bg-alt)}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.feature-card{background:#fff;border-radius:var(--radius);padding:36px 28px;box-shadow:var(--shadow);transition:transform .2s}
+.feature-card:hover{transform:translateY(-4px)}
+.feature-icon{font-size:2.2rem;margin-bottom:16px}
+.feature-card h3{font-size:1.2rem;margin-bottom:10px}
+.feature-card p{color:var(--text-sec);font-size:.95rem}
+
+/* ===== CALLOUT ===== */
+.callout{padding:40px 0}
+.callout-inner{background:var(--primary);color:#fff;text-align:center;padding:28px 40px;border-radius:var(--radius);font-size:1.4rem;font-family:'Playfair Display',serif;max-width:700px;margin:0 auto}
+
+/* ===== BENEFITS ===== */
+.benefits{padding:100px 0}
+.benefits-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+.benefit-cta{background:var(--primary);color:#fff;border-radius:var(--radius);padding:40px 28px;display:flex;flex-direction:column;justify-content:center}
+.benefit-cta h3{font-size:1.6rem;margin-bottom:12px;font-family:'Playfair Display',serif}
+.benefit-cta p{opacity:.85;margin-bottom:24px;font-size:1rem}
+.benefit-card{background:#fff;border-radius:var(--radius);padding:36px 28px;box-shadow:var(--shadow);text-align:center;transition:transform .2s}
+.benefit-card:hover{transform:translateY(-4px)}
+.benefit-card .b-icon{font-size:2.5rem;margin-bottom:16px}
+.benefit-card h3{font-size:1.2rem;margin-bottom:10px}
+.benefit-card p{color:var(--text-sec);font-size:.95rem}
+
+/* ===== TESTIMONIALS ===== */
+.testimonials{padding:100px 0;background:var(--bg)}
+.testimonials h2{font-size:2.8rem;text-align:center;margin-bottom:8px}
+.testimonials .sub{text-align:center;color:var(--text-sec);margin-bottom:48px;font-size:1.1rem}
+.carousel-wrapper{position:relative}
+.carousel{display:flex;gap:24px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:10px 0 20px;scrollbar-width:none}
+.carousel::-webkit-scrollbar{display:none}
+.t-card{min-width:340px;max-width:340px;border-radius:var(--radius);padding:32px 28px;scroll-snap-align:start;flex-shrink:0}
+.t-card.dark{background:#1A3C34;color:#E8F5E9}
+.t-card.light{background:var(--bg-alt);color:var(--text)}
+.t-card.warm{background:var(--highlight);color:var(--text)}
+.t-card blockquote{font-size:1rem;line-height:1.7;margin-bottom:20px;font-style:italic}
+.t-card .t-name{font-weight:700;font-size:.9rem;opacity:.8}
+.carousel-btn{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:#fff;box-shadow:var(--shadow);border:none;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center;z-index:2;transition:transform .2s}
+.carousel-btn:hover{transform:translateY(-50%) scale(1.1)}
+.carousel-btn.prev{left:-22px}
+.carousel-btn.next{right:-22px}
+
+/* ===== FAQ ===== */
+.faq{padding:100px 0;background:#1A3C34;color:#E8F5E9}
+.faq-layout{display:grid;grid-template-columns:1fr 1.5fr;gap:60px;align-items:start}
+.faq-title{font-size:2.8rem;color:#fff}
+.faq-item{border-bottom:1px solid rgba(255,255,255,.15);padding:20px 0}
+.faq-question{display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:1.05rem;font-weight:500;color:#fff;background:none;border:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;padding:4px 0}
+.faq-question:focus{outline:2px solid var(--secondary);outline-offset:4px;border-radius:4px}
+.faq-arrow{font-size:1.2rem;transition:transform .3s;flex-shrink:0;margin-left:16px}
+.faq-item.active .faq-arrow{transform:rotate(180deg)}
+.faq-answer{max-height:0;overflow:hidden;transition:max-height .4s ease,padding .4s ease;color:rgba(232,245,233,.75);font-size:.95rem;line-height:1.7}
+.faq-item.active .faq-answer{max-height:300px;padding-top:12px}
+
+/* ===== FINAL CTA ===== */
+.final-cta{padding:100px 0;background:linear-gradient(180deg,var(--bg) 0%,#F0F7F4 100%)}
+.final-cta-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:60px;align-items:center}
+.final-mockup{width:100%;height:450px}
+.final-text h2{font-size:2.8rem;margin-bottom:20px}
+.final-text p{color:var(--text-sec);margin-bottom:28px;font-size:1.1rem}
+.final-price{font-size:2.2rem;font-weight:700;color:var(--primary);margin-bottom:24px}
+
+/* ===== FOOTER ===== */
+footer{padding:48px 0;text-align:center;border-top:1px solid #e8e8e8}
+.footer-social{display:flex;gap:20px;justify-content:center;margin-bottom:16px}
+.footer-social a{color:var(--text-sec);font-size:.95rem;transition:color .2s}
+.footer-social a:hover{color:var(--primary)}
+.footer-legal{display:flex;gap:24px;justify-content:center;flex-wrap:wrap}
+.footer-legal a{color:var(--text-sec);font-size:.85rem}
+.footer-legal a:hover{color:var(--primary)}
+
+/* ===== GOLD DIVIDER ===== */
+.gold-divider{width:80px;height:2px;background:var(--secondary);margin:60px auto}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:1024px){
+.phase-grid,.features-grid,.benefits-grid{grid-template-columns:repeat(2,1fr)}
+.faq-layout{grid-template-columns:1fr}
+.faq-title{margin-bottom:20px}
+}
+@media(max-width:768px){
+.hero h1{font-size:2.6rem}
+.hero .subheadline{font-size:1.05rem}
+.empathy-block{grid-template-columns:1fr;gap:30px}
+.empathy-block.reverse{direction:ltr}
+.empathy-img{height:240px}
+.phase-grid{grid-template-columns:1fr 1fr}
+.features-grid{grid-template-columns:1fr}
+.benefits-grid{grid-template-columns:1fr}
+.final-cta-grid{grid-template-columns:1fr}
+.final-mockup{height:300px}
+.t-card{min-width:290px;max-width:290px}
+.carousel-btn.prev{left:4px}
+.carousel-btn.next{right:4px}
+.whats-inside h2,.testimonials h2,.faq-title,.final-text h2{font-size:2.2rem}
+.empathy-text h2{font-size:2rem}
+.btn{width:100%;text-align:center;padding:16px 32px}
+}
+@media(max-width:480px){
+.hero h1{font-size:2.1rem}
+.price-current{font-size:2.2rem}
+.phase-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+<div class="container">
+<div class="social-proof fade-in">
+<div class="avatar-dots">
+<div class="avatar-dot" style="background:#E76F51"></div>
+<div class="avatar-dot" style="background:#F4A261"></div>
+<div class="avatar-dot" style="background:#2D6A4F"></div>
+<div class="avatar-dot" style="background:#81B29A"></div>
+</div>
+Trusted by 200+ people rebuilding their lives
+</div>
+<h1 class="fade-in">The Crisis Toolkit</h1>
+<p class="subheadline fade-in">Your step-by-step system for getting back on your feet — even when everything feels impossible.</p>
+<div class="hero-mockup placeholder fade-in">Product Mockup Image<br>(eBook / Digital Product Cover)</div>
+<div class="price-display fade-in">
+<span class="price-current">$37</span>
+<span class="price-original caveat">$149</span>
+<br><span class="savings-badge">Save 75% — Limited Time</span>
+</div>
+<a href="#" class="btn fade-in">Get Instant Access →</a>
+<div class="scroll-arrow">↓</div>
+</div>
+</section>
+
+<!-- EMPATHY -->
+<section class="empathy">
+<div class="container">
+<div class="empathy-block fade-in">
+<div class="empathy-img placeholder">Sunrise / New Beginning Image</div>
+<div class="empathy-text">
+<h2>You're not starting over. You're starting from experience.</h2>
+</div>
+</div>
+<div class="empathy-block reverse fade-in">
+<div class="empathy-text">
+<h2>If everything feels like it's falling apart...</h2>
+<p>Maybe you've lost a job. A relationship. Your sense of direction. Maybe you're carrying grief, anxiety, or the weight of starting over with no roadmap. You don't need another motivational quote. You need real tools. A clear path. And permission to go at your own pace.</p>
+</div>
+<div class="empathy-img placeholder">Person Looking Forward / Hope Image</div>
+</div>
+</div>
+</section>
+
+<div class="gold-divider"></div>
+
+<!-- WHAT'S INSIDE -->
+<section class="whats-inside">
+<div class="container">
+<h2 class="fade-in">What's inside the Crisis Toolkit</h2>
+<p class="desc fade-in">A complete system for stabilizing your life, processing what happened, and building forward. Not therapy. Not toxic positivity. Just practical tools that actually work — organized into a clear, week-by-week path you can follow at your own pace.</p>
+<div class="phase-grid">
+<div class="phase-card fade-in">
+<div class="phase-img placeholder">Phase 1 — Stabilization Imagery</div>
+<div class="phase-label">Phase 1</div>
+<h3>Stabilize 🛟</h3>
+<p>Stop the bleeding. Ground yourself. Handle the immediate chaos — finances, housing, communication — without spiraling.</p>
+</div>
+<div class="phase-card fade-in">
+<div class="phase-img placeholder">Phase 2 — Processing Imagery</div>
+<div class="phase-label">Phase 2</div>
+<h3>Process 🌊</h3>
+<p>Make sense of what happened. Release the emotional weight. Journal prompts and frameworks to turn pain into clarity.</p>
+</div>
+<div class="phase-card fade-in">
+<div class="phase-img placeholder">Phase 3 — Rebuilding Imagery</div>
+<div class="phase-label">Phase 3</div>
+<h3>Rebuild 🧱</h3>
+<p>Start putting the pieces back together. Identity, routines, goals, boundaries. Small wins that compound.</p>
+</div>
+<div class="phase-card fade-in">
+<div class="phase-img placeholder">Phase 4 — Forward Motion Imagery</div>
+<div class="phase-label">Phase 4</div>
+<h3>Launch Forward 🚀</h3>
+<p>Lock in your new direction. Build momentum. Create a 90-day vision so this chapter becomes the turning point — not the ending.</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+<div class="container">
+<div class="features-grid">
+<div class="feature-card fade-in">
+<div class="feature-icon">🛡️</div>
+<h3>Crisis Stabilization Checklists</h3>
+<p>Step-by-step action lists for the first 72 hours, first week, and first month. Know exactly what to do when your brain can't think straight.</p>
+</div>
+<div class="feature-card fade-in">
+<div class="feature-icon">📓</div>
+<h3>Guided Processing Journal</h3>
+<p>30 days of prompts designed to help you untangle emotions, identify patterns, and find clarity without a therapist's price tag.</p>
+</div>
+<div class="feature-card fade-in">
+<div class="feature-icon">🧭</div>
+<h3>Life Rebuild Blueprint</h3>
+<p>A framework for reconstructing your identity, finances, routines, and relationships from the ground up.</p>
+</div>
+<div class="feature-card fade-in">
+<div class="feature-icon">🧠</div>
+<h3>Mindset Reset Scripts</h3>
+<p>Rewrite the stories you're telling yourself. Reframe failure, rejection, and loss into fuel for your next chapter.</p>
+</div>
+<div class="feature-card fade-in">
+<div class="feature-icon">📅</div>
+<h3>Daily Micro-Actions</h3>
+<p>Tiny, manageable tasks for each day — because when you're overwhelmed, even 'make a plan' feels like too much.</p>
+</div>
+<div class="feature-card fade-in">
+<div class="feature-icon">🤝</div>
+<h3>Resource & Support Directory</h3>
+<p>Curated list of free and low-cost resources — mental health, financial aid, legal help, career support — so you're never truly alone.</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- CALLOUT -->
+<section class="callout fade-in">
+<div class="container">
+<div class="callout-inner">Start with just 10 minutes a day. That's it.</div>
+</div>
+</section>
+
+<!-- BENEFITS -->
+<section class="benefits">
+<div class="container">
+<div class="benefits-grid">
+<div class="benefit-cta fade-in">
+<h3>Start your recovery</h3>
+<p>If you're tired of feeling stuck... this is where it changes.</p>
+<a href="#" class="btn btn-white">Get instant access</a>
+</div>
+<div class="benefit-card fade-in">
+<div class="b-icon">🌸</div>
+<h3>Emotional Clarity</h3>
+<p>Stop carrying confusion and heaviness everywhere you go</p>
+</div>
+<div class="benefit-card fade-in">
+<div class="b-icon">☀️</div>
+<h3>A Real Plan</h3>
+<p>Know what to do tomorrow, next week, and next month</p>
+</div>
+<div class="benefit-card fade-in">
+<div class="b-icon">⭐</div>
+<h3>Forward Momentum</h3>
+<p>Turn this chapter into a launchpad, not a life sentence</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+<div class="container">
+<h2 class="fade-in">What people are saying about the Crisis Toolkit</h2>
+<p class="sub fade-in">Real stories from people who used these tools to rebuild.</p>
+<div class="carousel-wrapper fade-in">
+<button class="carousel-btn prev" aria-label="Previous testimonial">←</button>
+<div class="carousel" role="region" aria-label="Testimonials">
+<div class="t-card dark">
+<blockquote>"I was drowning. I couldn't think, couldn't plan, couldn't see past tomorrow. The checklists alone saved me — they gave me something to DO when my brain was useless."</blockquote>
+<div class="t-name">— James, 34</div>
+</div>
+<div class="t-card light">
+<blockquote>"I didn't expect a digital product to actually help. But the journal prompts hit different. I cried on day 3 and by week 2, I could finally breathe."</blockquote>
+<div class="t-name">— Sarah, 41</div>
+</div>
+<div class="t-card warm">
+<blockquote>"After my divorce, I was paralyzed. This gave me a roadmap when I had nothing. The rebuild blueprint is worth 10x the price alone."</blockquote>
+<div class="t-name">— Marcus, 38</div>
+</div>
+<div class="t-card dark">
+<blockquote>"No fluff. No 'just think positive' nonsense. Actual steps. Actual tools. I bought this at my lowest and it helped me find my footing."</blockquote>
+<div class="t-name">— Priya, 29</div>
+</div>
+<div class="t-card light">
+<blockquote>"The daily micro-actions were a game changer. When everything feels impossible, doing ONE tiny thing creates momentum. This toolkit gets that."</blockquote>
+<div class="t-name">— Robert, 52</div>
+</div>
+</div>
+<button class="carousel-btn next" aria-label="Next testimonial">→</button>
+</div>
+</div>
+</section>
+
+<!-- FAQ -->
+<section class="faq">
+<div class="container">
+<div class="faq-layout">
+<h2 class="faq-title fade-in">Frequently asked questions</h2>
+<div class="faq-list fade-in">
+<div class="faq-item">
+<button class="faq-question" aria-expanded="false">What exactly is the Crisis Toolkit? <span class="faq-arrow">↓</span></button>
+<div class="faq-answer" role="region">It's a digital toolkit — a collection of checklists, journal prompts, frameworks, and daily actions designed to help you stabilize, process, and rebuild after a major life crisis. Think of it as your personal recovery roadmap.</div>
+</div>
+<div class="faq-item">
+<button class="faq-question" aria-expanded="false">What will I receive after purchase? <span class="faq-arrow">↓</span></button>
+<div class="faq-answer" role="region">You'll get instant digital access to the full toolkit — including the Crisis Stabilization Checklists, 30-Day Processing Journal, Life Rebuild Blueprint, Mindset Reset Scripts, Daily Micro-Actions guide, and the Resource Directory.</div>
+</div>
+<div class="faq-item">
+<button class="faq-question" aria-expanded="false">How much time do I need each day? <span class="faq-arrow">↓</span></button>
+<div class="faq-answer" role="region">As little as 10 minutes. The toolkit is designed for people who are overwhelmed — every action is small, manageable, and designed to meet you where you are.</div>
+</div>
+<div class="faq-item">
+<button class="faq-question" aria-expanded="false">Is this a replacement for therapy? <span class="faq-arrow">↓</span></button>
+<div class="faq-answer" role="region">No. This is a practical action toolkit — not clinical treatment. It works great alongside therapy, but it's also designed to help people who can't currently access or afford professional support.</div>
+</div>
+<div class="faq-item">
+<button class="faq-question" aria-expanded="false">What kind of crisis is this designed for? <span class="faq-arrow">↓</span></button>
+<div class="faq-answer" role="region">Job loss, divorce, breakups, financial collapse, grief, burnout, major life transitions — any situation where you feel like the ground has been pulled out from under you and you need a clear path forward.</div>
+</div>
+<div class="faq-item">
+<button class="faq-question" aria-expanded="false">What if this doesn't work for me? <span class="faq-arrow">↓</span></button>
+<div class="faq-answer" role="region">Everyone's situation is different, but the tools inside are designed to be universally actionable regardless of your specific crisis. The daily micro-actions alone are worth the investment — they give you something concrete to do every single day.</div>
+</div>
+<div class="faq-item">
+<button class="faq-question" aria-expanded="false">Is this suitable for someone in an active emergency? <span class="faq-arrow">↓</span></button>
+<div class="faq-answer" role="region">If you are in immediate danger or experiencing a mental health emergency, please contact emergency services (911) or the 988 Suicide &amp; Crisis Lifeline. This toolkit is for people who are past the immediate emergency and need help rebuilding.</div>
+</div>
+<div class="faq-item">
+<button class="faq-question" aria-expanded="false">Do I get lifetime access? <span class="faq-arrow">↓</span></button>
+<div class="faq-answer" role="region">Yes. Once you purchase, the toolkit is yours forever. Download it, save it, revisit it whenever you need. No subscriptions, no recurring charges.</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+<div class="container">
+<div class="final-cta-grid">
+<div class="final-mockup placeholder fade-in">Product Mockup Image<br>(Same as hero or alternate angle)</div>
+<div class="final-text fade-in">
+<h2>Take your first step toward rebuilding.</h2>
+<p>You don't have to have it all figured out. You just need the next step. The Crisis Toolkit gives you that — and every step after. For less than the cost of one therapy session, you get a complete system for getting back on your feet. Ready?</p>
+<div class="final-price">$37</div>
+<a href="#" class="btn">Get instant access →</a>
+</div>
+</div>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+<div class="container">
+<div class="footer-social">
+<a href="#">Facebook</a>
+<a href="#">Instagram</a>
+<a href="#">Twitter</a>
+<a href="#">LinkedIn</a>
+</div>
+<div class="footer-legal">
+<a href="#">Home</a>
+<a href="#">About Us</a>
+<a href="#">Terms of Service</a>
+<a href="#">Refund Policy</a>
+</div>
+</div>
+</footer>
+
+<script>
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// FAQ accordion
+document.querySelectorAll('.faq-question').forEach(btn => {
+btn.addEventListener('click', () => {
+const item = btn.parentElement;
+const isActive = item.classList.contains('active');
+document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+document.querySelectorAll('.faq-question').forEach(b => b.setAttribute('aria-expanded', 'false'));
+if (!isActive) { item.classList.add('active'); btn.setAttribute('aria-expanded', 'true'); }
+});
+btn.addEventListener('keydown', (e) => {
+if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); }
+});
+});
+
+// Carousel
+const carousel = document.querySelector('.carousel');
+const prevBtn = document.querySelector('.carousel-btn.prev');
+const nextBtn = document.querySelector('.carousel-btn.next');
+if (carousel && prevBtn && nextBtn) {
+prevBtn.addEventListener('click', () => carousel.scrollBy({ left: -370, behavior: 'smooth' }));
+nextBtn.addEventListener('click', () => carousel.scrollBy({ left: 370, behavior: 'smooth' }));
+}
+</script>
+</body>
+</html>
